@@ -33,5 +33,6 @@ Inspect, set, and delete the webhook used to receive updates over HTTPS (instead
 * [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
 * [tgctl webhook delete](tgctl_webhook_delete.md)	 - Delete the webhook (switch back to polling)
 * [tgctl webhook info](tgctl_webhook_info.md)	 - Show the current webhook status
+* [tgctl webhook listen](tgctl_webhook_listen.md)	 - Run a local server that receives webhook updates and prints them
 * [tgctl webhook set](tgctl_webhook_set.md)	 - Set the webhook URL
 

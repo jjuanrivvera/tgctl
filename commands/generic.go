@@ -99,6 +99,10 @@ type group struct {
 	Short   string
 	Long    string
 	Cmds    []methodCmd
+	// Extra holds hand-written subcommands for value-adds that aren't a single API method
+	// (e.g. `webhook listen`). They are FACTORIES, not shared instances, so each NewRootCmd
+	// builds a fresh command tree and cobra flag state never leaks across tests.
+	Extra []func() *cobra.Command
 }
 
 // apiCmdInfo records a built API command for the MCP server and agent guard to classify.
@@ -136,6 +140,9 @@ func registerGroup(g group) {
 		}
 		for _, mc := range g.Cmds {
 			parent.AddCommand(buildMethodCmd(mc))
+		}
+		for _, factory := range g.Extra {
+			parent.AddCommand(factory())
 		}
 		root.AddCommand(parent)
 	})

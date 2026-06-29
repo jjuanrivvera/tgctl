@@ -1,5 +1,7 @@
 package commands
 
+import "github.com/spf13/cobra"
+
 func init() {
 	registerGroup(group{
 		Use:   "webhook",
@@ -34,5 +36,8 @@ func init() {
 				},
 			},
 		},
+		// `listen` is a local receiver (a value-add beyond the API), not a single Bot API
+		// method — so it's a hand-written Extra command, not part of the generic surface.
+		Extra: []func() *cobra.Command{webhookListenCmd},
 	})
 }

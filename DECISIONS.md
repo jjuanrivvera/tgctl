@@ -28,6 +28,14 @@ never silently re-decide.
 | CSV output | Kept | Most list results (updates, administrators, commands) are tabular. |
 | "id" rendering | `ID` flexible type (string-or-number) | chat_id / user_id are large int64; render as string to avoid >2^53 precision loss. |
 
+## Beyond-the-API value-adds (GOAL.md §3c)
+- **`webhook listen`** — a local HTTP receiver that renders incoming webhook updates. It is
+  not a single Bot API method, so it's a hand-written `Extra` command on the webhook group
+  (the generic builder gained an `Extra []func() *cobra.Command` hook — extend, don't fork).
+  Excluded from the MCP surface (a blocking server must never be an agent tool). Not in
+  `api-manifest.json` because that manifest tracks the pure API surface; spec-check only
+  enforces a minimum, so value-adds beyond it are allowed.
+
 ## Resource set (derived from the Bot API method surface; see api-manifest.json)
 Grouped by noun; verbs map 1:1 to Bot API methods. Read-only verbs annotated read-only for
 MCP/agent-guard; destructive verbs (delete/leave/ban/unpin) annotated destructive.

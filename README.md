@@ -52,6 +52,7 @@ tgctl media photo --chat @me --photo ./cat.jpg   # upload a photo
 tgctl chat get --chat @telegram -o json          # chat metadata as JSON
 tgctl chat administrators --chat @mygroup        # list admins
 tgctl webhook info                               # webhook status
+tgctl webhook listen --port 8080 -o json         # receive + print webhook updates locally
 tgctl commands set --commands '[{"command":"start","description":"Begin"}]'
 tgctl api getMe --idempotent                     # raw escape hatch for any method
 ```

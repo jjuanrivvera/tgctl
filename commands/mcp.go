@@ -11,6 +11,9 @@ import (
 // excluded too so an agent can neither re-enter the server nor disable its own guardrails.
 var excludedFromMCP = []string{
 	"agent", "auth", "config", "alias", "init", "doctor", "completion", "version", "api",
+	// `webhook listen` is a long-running local server — never expose a blocking command as a
+	// tool an agent could call and hang on.
+	"listen",
 }
 
 // secretFlags must never reach the MCP tool schema: an agent must not read the token or
