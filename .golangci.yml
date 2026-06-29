@@ -14,6 +14,12 @@ linters:
     - unconvert
     - nilerr
   settings:
+    errcheck:
+      # Writes to stdout/stderr (user-facing output) have no actionable error to handle.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
     gosec:
       # G404: non-crypto RNG is intentional for retry jitter (not a security boundary).
       # G304: the CLI deliberately reads/writes user-named paths (config, --out, imports);
