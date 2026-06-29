@@ -34,7 +34,9 @@ func TestConfineToBase(t *testing.T) {
 	// Escapes must be rejected.
 	_, err = ConfineToBase(base, "../escape")
 	assert.Error(t, err)
-	_, err = ConfineToBase(base, "/etc/passwd")
+	// An absolute path must be rejected. t.TempDir() yields a platform-appropriate absolute
+	// path (a Unix-style "/etc/passwd" is not absolute on Windows, so don't hardcode it).
+	_, err = ConfineToBase(base, t.TempDir())
 	assert.Error(t, err, "absolute paths from data are rejected")
 
 	// A symlink pointing outside the base must be rejected after resolution.

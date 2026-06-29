@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,10 +18,12 @@ func TestConfig_SaveLoadRoundTrip(t *testing.T) {
 	c.CurrentProfile = "prod"
 	require.NoError(t, c.Save())
 
-	// File must be 0600.
+	// File must be 0600 (Unix only — Windows has no POSIX mode bits).
 	info, err := os.Stat(p)
 	require.NoError(t, err)
-	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
+	if runtime.GOOS != "windows" {
+		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
+	}
 
 	got, err := LoadFrom(p)
 	require.NoError(t, err)
@@ -82,13 +85,14 @@ func TestSetProfile_RejectsBadName(t *testing.T) {
 }
 
 func TestDirAndPath_XDG(t *testing.T) {
-	t.Setenv("XDG_CONFIG_HOME", "/tmp/xdgtest")
+	base := t.TempDir() // platform-appropriate absolute path
+	t.Setenv("XDG_CONFIG_HOME", base)
 	dir, err := Dir()
 	require.NoError(t, err)
-	assert.Equal(t, "/tmp/xdgtest/tgctl", dir)
+	assert.Equal(t, filepath.Join(base, "tgctl"), dir)
 	p, err := Path()
 	require.NoError(t, err)
-	assert.Equal(t, "/tmp/xdgtest/tgctl/config.yaml", p)
+	assert.Equal(t, filepath.Join(base, "tgctl", "config.yaml"), p)
 }
 
 func TestDir_HomeFallback(t *testing.T) {

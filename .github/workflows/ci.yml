@@ -18,6 +18,9 @@ jobs:
       - run: gofmt -l . | tee /dev/stderr | (! read)
       - run: go vet ./...
       - uses: golangci/golangci-lint-action@v6
+        # Pin to a golangci-lint built with Go >= the module's go directive (1.25); the action's
+        # default is built with an older Go and refuses to analyze a go1.25 module.
+        with: { version: latest }
       - name: docs-gen drift check
         run: make docs-gen && git diff --exit-code -- docs/commands
 

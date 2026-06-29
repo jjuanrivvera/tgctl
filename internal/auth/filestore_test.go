@@ -3,6 +3,7 @@ package auth
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,10 +21,13 @@ func TestFileStore_RoundTrip(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "token-a", got)
 
-	// The on-disk file must be 0600 and must NOT contain the plaintext token.
+	// The on-disk file must be 0600 (Unix only — Windows has no POSIX mode bits) and must
+	// NOT contain the plaintext token.
 	info, err := os.Stat(filepath.Join(dir, "credentials.enc"))
 	require.NoError(t, err)
-	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
+	if runtime.GOOS != "windows" {
+		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
+	}
 	raw, _ := os.ReadFile(filepath.Join(dir, "credentials.enc"))
 	assert.NotContains(t, string(raw), "token-a", "token must be encrypted at rest")
 
