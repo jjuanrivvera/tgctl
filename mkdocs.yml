@@ -1,0 +1,24 @@
+site_name: tgctl
+site_description: A command-line tool for the Telegram Bot API
+repo_url: https://github.com/jjuanrivvera/tgctl
+repo_name: jjuanrivvera/tgctl
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle: { icon: material/brightness-7, name: Dark mode }
+    - scheme: slate
+      primary: indigo
+      toggle: { icon: material/brightness-4, name: Light mode }
+  features:
+    - navigation.instant
+    - navigation.sections
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+nav:
+  - Home: index.md
+  - Command reference: commands/tgctl.md

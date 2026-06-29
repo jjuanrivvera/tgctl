@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "tgctl-cli",
+  "version": "0.1.0",
+  "description": "Drive the Telegram Bot API from the command line: send messages and media, manage chats/members/webhooks, and poll updates.",
+  "author": { "name": "Juan Rivera", "url": "https://github.com/jjuanrivvera" },
+  "homepage": "https://github.com/jjuanrivvera/tgctl",
+  "repository": "https://github.com/jjuanrivvera/tgctl",
+  "license": "MIT",
+  "skills": "./skills",
+  "keywords": ["telegram", "bot", "cli", "ai-agent", "mcp"]
+}

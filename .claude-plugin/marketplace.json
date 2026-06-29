@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "tgctl",
+  "owner": { "name": "Juan Rivera", "url": "https://github.com/jjuanrivvera" },
+  "plugins": [
+    {
+      "name": "tgctl-cli",
+      "source": "./",
+      "version": "0.1.0",
+      "description": "Drive the Telegram Bot API from the command line.",
+      "homepage": "https://github.com/jjuanrivvera/tgctl",
+      "keywords": ["telegram", "bot", "cli", "ai-agent", "mcp"]
+    }
+  ]
+}
