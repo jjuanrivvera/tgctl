@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-29
+
 ### Added
 - Initial release of `tgctl`, a command-line tool for the Telegram Bot API.
 - Resource groups mapping 1:1 to Bot API methods: `bot`, `message`, `media`, `chat`,
@@ -18,4 +20,7 @@ All notable changes to this project are documented here. The format is based on
   limiting, `--dry-run` (prints the equivalent redacted `curl`), Ctrl-C cancellation.
 - MCP server (`mcp`) exposing the API as annotated tools, plus `agent guard` to generate
   host safety config for Claude Code, Codex, and OpenCode.
+- `webhook listen` — a local receiver that renders incoming webhook updates.
 - Generated command reference, GoReleaser packaging, and CI.
+
+[0.1.0]: https://github.com/jjuanrivvera/tgctl/releases/tag/v0.1.0

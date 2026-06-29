@@ -40,7 +40,9 @@ release:
 homebrew_casks:
   - name: tgctl-cli
     binaries: [tgctl]
-    repository: { owner: jjuanrivvera, name: homebrew-tgctl }
+    # token required to push the cask cross-repo: the default GITHUB_TOKEN is scoped to this
+    # repo only and cannot write to the tap.
+    repository: { owner: jjuanrivvera, name: homebrew-tgctl, token: "{{ .Env.HOMEBREW_TAP_TOKEN }}" }
     homepage: https://github.com/jjuanrivvera/tgctl
     hooks:
       post:
@@ -48,7 +50,7 @@ homebrew_casks:
           system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/tgctl"]
 
 scoops:
-  - repository: { owner: jjuanrivvera, name: scoop-tgctl }   # this bucket repo must already exist
+  - repository: { owner: jjuanrivvera, name: scoop-tgctl, token: "{{ .Env.HOMEBREW_TAP_TOKEN }}" }   # bucket repo must already exist; cross-repo token
 
 nfpms:
   - formats: [deb, rpm, apk]
