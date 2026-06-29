@@ -57,7 +57,34 @@ func NewRootCmd() *cobra.Command {
 	for _, fn := range registrations {
 		fn(root)
 	}
+	groupCommands(root)
 	return root
+}
+
+// commandGroups assigns each top-level command to a gh-style section so `--help` reads like a
+// first-party tool instead of one flat alphabetical list.
+var commandGroups = map[string]string{
+	"message": "messaging", "media": "messaging",
+	"chat": "chats", "member": "chats", "updates": "chats",
+	"bot": "config", "commands": "config", "webhook": "config",
+	"auth": "meta", "config": "meta", "init": "meta", "doctor": "meta",
+	"alias": "meta", "api": "meta", "version": "meta", "completion": "meta",
+	"mcp": "agents", "agent": "agents",
+}
+
+func groupCommands(root *cobra.Command) {
+	root.AddGroup(
+		&cobra.Group{ID: "messaging", Title: "Messaging:"},
+		&cobra.Group{ID: "chats", Title: "Chats & members:"},
+		&cobra.Group{ID: "config", Title: "Bot configuration:"},
+		&cobra.Group{ID: "agents", Title: "AI agents:"},
+		&cobra.Group{ID: "meta", Title: "Setup & meta:"},
+	)
+	for _, c := range root.Commands() {
+		if id, ok := commandGroups[c.Name()]; ok {
+			c.GroupID = id
+		}
+	}
 }
 
 func addGlobalFlags(root *cobra.Command) {

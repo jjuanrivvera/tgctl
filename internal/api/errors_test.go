@@ -45,3 +45,14 @@ func TestAPIError_EmptyDescriptionFallsBack(t *testing.T) {
 	e := &APIError{Code: 400}
 	assert.Contains(t, e.Error(), "request failed")
 }
+
+func TestAPIError_HintFallsBackToStatusCode(t *testing.T) {
+	// An empty-body 5xx from a proxy: error_code is 0 but StatusCode is 502 — the hint must
+	// still fire off the HTTP status.
+	e := &APIError{Code: 0, StatusCode: 502, Description: ""}
+	assert.Contains(t, e.Error(), "transient")
+
+	// When error_code is present it wins.
+	e2 := &APIError{Code: 401, StatusCode: 500}
+	assert.Contains(t, e2.Error(), "auth login")
+}

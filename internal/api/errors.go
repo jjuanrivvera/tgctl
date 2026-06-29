@@ -42,33 +42,45 @@ func (e *APIError) Error() string {
 	return b.String()
 }
 
-// hint maps a status (and a few well-known Telegram descriptions) to the concrete next
-// action. Keyed remedies are the difference between a CLI you can debug and one you can't.
+// hint maps the error_code (which mirrors the HTTP status) and a few well-known Telegram
+// descriptions to the concrete next action. Keyed remedies are the difference between a CLI
+// you can debug and one you can't. It falls back to the HTTP StatusCode when the body carried
+// no usable error_code (e.g. an empty-body 5xx from a proxy), so a hint is still produced.
 func (e *APIError) hint() string {
+	if h := e.hintForCode(e.Code); h != "" {
+		return h
+	}
+	if e.StatusCode != e.Code {
+		return e.hintForCode(e.StatusCode)
+	}
+	return ""
+}
+
+func (e *APIError) hintForCode(code int) string {
 	d := strings.ToLower(e.Description)
 	switch {
-	case e.Code == 401 || strings.Contains(d, "unauthorized"):
+	case code == 401 || strings.Contains(d, "unauthorized"):
 		return "invalid bot token — run `tgctl auth login` (get a token from @BotFather)"
-	case e.Code == 403 || strings.Contains(d, "forbidden"):
+	case code == 403 || strings.Contains(d, "forbidden"):
 		return "the bot lacks rights here — it must be a member/admin of the chat, and the user must have started it"
-	case e.Code == 404:
+	case code == 404:
 		return "method or path not found — check the method name (`tgctl api <method>`) or your --base-url"
-	case e.Code == 409 || strings.Contains(d, "terminated by other getupdates") || strings.Contains(d, "can't use getupdates"):
+	case code == 409 || strings.Contains(d, "terminated by other getupdates") || strings.Contains(d, "can't use getupdates"):
 		return "conflict — a webhook is set or another getUpdates is running; run `tgctl webhook delete` or stop the other poller"
-	case e.Code == 429:
+	case code == 429:
 		if e.Parameters != nil && e.Parameters.RetryAfter > 0 {
 			return fmt.Sprintf("rate limited — wait %ds and retry (tgctl backs off automatically; lower --rps for steady load)", e.Parameters.RetryAfter)
 		}
 		return "rate limited — slow down (lower --rps; tgctl already honors retry_after)"
-	case e.Code == 400 && strings.Contains(d, "chat not found"):
+	case code == 400 && strings.Contains(d, "chat not found"):
 		return "chat not found — verify the chat id/@username; the bot must have interacted with the chat first"
-	case e.Code == 400 && strings.Contains(d, "message to edit not found"):
+	case code == 400 && strings.Contains(d, "message to edit not found"):
 		return "no such message — list recent updates with `tgctl updates get` to find a valid message id"
-	case e.Code == 400 && strings.Contains(d, "can't parse"):
+	case code == 400 && strings.Contains(d, "can't parse"):
 		return "markup parse error — check --parse-mode (MarkdownV2 needs special characters escaped); try plain text"
-	case e.Code == 400:
+	case code == 400:
 		return "bad request — re-check the parameters; `--dry-run` prints the exact request"
-	case e.Code >= 500:
+	case code >= 500:
 		return "Telegram server error — usually transient; retry shortly"
 	}
 	return ""
