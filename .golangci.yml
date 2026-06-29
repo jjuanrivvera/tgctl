@@ -24,9 +24,12 @@ linters:
       # G404: non-crypto RNG is intentional for retry jitter (not a security boundary).
       # G304: the CLI deliberately reads/writes user-named paths (config, --out, imports);
       #       those reads are path-confined where they come from data (see internal/api).
+      # G101: false positive on help/UI strings that merely contain the word "token"
+      #       (e.g. the "token_storage" note in `config view`) — no secret is embedded.
       excludes:
         - G404
         - G304
+        - G101
     revive:
       rules:
         - name: exported
