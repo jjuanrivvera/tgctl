@@ -1,0 +1,17 @@
+{
+  "_comment": "Spec-derived manifest (cliwright GOAL.md §11). Derived from the Telegram Bot API method surface (https://core.telegram.org/bots/api). Verbs map 1:1 to Bot API methods. Enforced by scripts/spec-check.sh so the same API yields the same CLI surface. The Bot API is RPC-method-oriented, not CRUD — verbs are the API's own actions, not list/get/create/update/delete (see DECISIONS.md).",
+  "binary": "tgctl",
+  "base_url": "https://api.telegram.org",
+  "auth": "bot-token",
+  "pagination": "offset (getUpdates offset/limit)",
+  "resources": [
+    { "name": "bot",      "verbs": ["info", "set-name", "get-name", "set-description", "get-description"], "key_fields": ["id", "username", "first_name"] },
+    { "name": "message",  "verbs": ["send", "edit", "delete", "forward", "copy", "pin", "unpin"], "key_fields": ["message_id", "chat", "text"] },
+    { "name": "media",    "verbs": ["photo", "document", "video"], "key_fields": ["message_id", "chat"] },
+    { "name": "chat",     "verbs": ["get", "members-count", "administrators", "member", "leave"], "key_fields": ["id", "type", "title"] },
+    { "name": "member",   "verbs": ["ban", "unban", "restrict", "promote"], "key_fields": ["status", "user"] },
+    { "name": "updates",  "verbs": ["get"], "read_only": true, "key_fields": ["update_id", "message"] },
+    { "name": "webhook",  "verbs": ["info", "set", "delete"], "key_fields": ["url", "pending_update_count"] },
+    { "name": "commands", "verbs": ["list", "set", "delete"], "key_fields": ["command", "description"] }
+  ]
+}
