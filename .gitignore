@@ -7,3 +7,4 @@ coverage.html
 *.out
 .DS_Store
 site/
+mcp-tools.json
