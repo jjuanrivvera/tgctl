@@ -2,7 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"slices"
 	"sort"
+	"strings"
 
 	"github.com/google/shlex"
 	"github.com/spf13/cobra"
@@ -39,13 +41,8 @@ func ExpandAliases(args []string) []string {
 // isBuiltinCommand reports whether name is a registered top-level command on a fresh tree.
 func isBuiltinCommand(name string) bool {
 	for _, c := range NewRootCmd().Commands() {
-		if c.Name() == name {
+		if c.Name() == name || slices.Contains(c.Aliases, name) {
 			return true
-		}
-		for _, a := range c.Aliases {
-			if a == name {
-				return true
-			}
 		}
 	}
 	return false
@@ -73,7 +70,7 @@ func init() {
 				if err := config.ValidateProfileName(name); err != nil {
 					return fmt.Errorf("invalid alias name: %w", err)
 				}
-				expansion := joinArgs(args[1:])
+				expansion := strings.Join(args[1:], " ")
 				cfg, err := config.Load()
 				if err != nil {
 					return err
@@ -136,15 +133,4 @@ func init() {
 		aliasCmd.AddCommand(setCmd, listCmd, removeCmd)
 		root.AddCommand(aliasCmd)
 	})
-}
-
-func joinArgs(args []string) string {
-	out := ""
-	for i, a := range args {
-		if i > 0 {
-			out += " "
-		}
-		out += a
-	}
-	return out
 }

@@ -24,7 +24,7 @@ func init() {
 }
 
 func authLoginCmd() *cobra.Command {
-	var token, baseURL string
+	var token string
 	var noVerify bool
 	cmd := &cobra.Command{
 		Use:   "login",
@@ -49,7 +49,8 @@ func authLoginCmd() *cobra.Command {
 				return err
 			}
 
-			base := config.FirstNonEmpty(baseURL, api.DefaultBaseURL)
+			baseFlag, _ := cmd.Flags().GetString("base-url")
+			base := config.FirstNonEmpty(baseFlag, api.DefaultBaseURL)
 			if err := config.ValidateBaseURL(base); err != nil {
 				return err
 			}
@@ -86,7 +87,6 @@ func authLoginCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&token, "token", "", "bot token (omit to be prompted with hidden input)")
-	cmd.Flags().StringVar(&baseURL, "base-url-set", "", "base URL to record for this profile (default https://api.telegram.org)")
 	cmd.Flags().BoolVar(&noVerify, "no-verify", false, "skip the getMe verification call")
 	return cmd
 }

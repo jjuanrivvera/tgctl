@@ -80,3 +80,35 @@ func TestSetProfile_RejectsBadName(t *testing.T) {
 	assert.Error(t, c.SetProfile("a/b", Profile{}))
 	assert.Error(t, c.SetProfile("ok", Profile{BaseURL: "http://example.com"}))
 }
+
+func TestDirAndPath_XDG(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "/tmp/xdgtest")
+	dir, err := Dir()
+	require.NoError(t, err)
+	assert.Equal(t, "/tmp/xdgtest/tgctl", dir)
+	p, err := Path()
+	require.NoError(t, err)
+	assert.Equal(t, "/tmp/xdgtest/tgctl/config.yaml", p)
+}
+
+func TestDir_HomeFallback(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "")
+	dir, err := Dir()
+	require.NoError(t, err)
+	assert.Contains(t, dir, ".tgctl-cli")
+}
+
+func TestLoad_UsesXDG(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", tmp)
+	c, err := Load()
+	require.NoError(t, err)
+	assert.NotEmpty(t, c.FilePath())
+	// Save then reload through the public Load path.
+	require.NoError(t, c.SetProfile("p", Profile{BotID: "9"}))
+	require.NoError(t, c.Save())
+	again, err := Load()
+	require.NoError(t, err)
+	_, ok := again.Profile("p")
+	assert.True(t, ok)
+}

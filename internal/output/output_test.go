@@ -116,6 +116,29 @@ func TestFormat_Valid(t *testing.T) {
 	assert.False(t, Format("xml").Valid())
 }
 
+func TestRender_YAML_BigIntAndNested(t *testing.T) {
+	out, _ := render(t, `{"id":9007199254740993,"chat":{"id":7},"tags":["a","b"]}`, Options{Format: FormatYAML})
+	mustContainStr(t, out, "id: 9007199254740993")
+	mustContainStr(t, out, "tags:")
+}
+
+func TestRender_ID_FallbackToFirstColumn(t *testing.T) {
+	// No id-like key → falls back to the first ordered column.
+	out, _ := render(t, `[{"label":"x"},{"label":"y"}]`, Options{Format: FormatID})
+	assert.Equal(t, "x\ny\n", out)
+}
+
+func TestRender_ScalarArrayCSV(t *testing.T) {
+	out, _ := render(t, `["one","two"]`, Options{Format: FormatCSV})
+	mustContainStr(t, out, "value")
+	mustContainStr(t, out, "one")
+}
+
+func mustContainStr(t *testing.T, s, sub string) {
+	t.Helper()
+	assert.Contains(t, s, sub)
+}
+
 func TestTruncCell(t *testing.T) {
 	s, cut := truncCell("hello world", 5)
 	assert.True(t, cut)

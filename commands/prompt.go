@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"strings"
@@ -10,15 +9,30 @@ import (
 	"golang.org/x/term"
 )
 
-// promptLine prints label to stderr and reads one line from stdin (trimmed).
+// promptLine prints label to stderr and reads one line from stdin (trimmed). It reads one
+// byte at a time rather than buffering, so successive prompts on the same reader don't lose
+// input that a buffered reader would have read ahead and discarded.
 func promptLine(cmd *cobra.Command, label string) (string, error) {
 	fmt.Fprint(cmd.ErrOrStderr(), label)
-	r := bufio.NewReader(cmd.InOrStdin())
-	line, err := r.ReadString('\n')
-	if err != nil && line == "" {
-		return "", err
+	r := cmd.InOrStdin()
+	var b strings.Builder
+	buf := make([]byte, 1)
+	for {
+		n, err := r.Read(buf)
+		if n > 0 {
+			if buf[0] == '\n' {
+				break
+			}
+			b.WriteByte(buf[0])
+		}
+		if err != nil {
+			if b.Len() == 0 {
+				return "", err
+			}
+			break
+		}
 	}
-	return strings.TrimSpace(line), nil
+	return strings.TrimSpace(b.String()), nil
 }
 
 // promptSecret reads a secret without echoing when stdin is a terminal; on a pipe it falls

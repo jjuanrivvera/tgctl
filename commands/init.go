@@ -27,11 +27,13 @@ func init() {
 				out := cmd.OutOrStdout()
 				fmt.Fprintf(cmd.ErrOrStderr(), "Setting up profile %q.\n", profileName)
 
-				base, err := promptLine(cmd, "Base URL [https://api.telegram.org]: ")
+				baseFlag, _ := cmd.Flags().GetString("base-url")
+				defaultBase := config.FirstNonEmpty(baseFlag, api.DefaultBaseURL)
+				base, err := promptLine(cmd, fmt.Sprintf("Base URL [%s]: ", defaultBase))
 				if err != nil {
 					return err
 				}
-				base = config.FirstNonEmpty(base, api.DefaultBaseURL)
+				base = config.FirstNonEmpty(base, defaultBase)
 				if err := config.ValidateBaseURL(base); err != nil {
 					return err
 				}
