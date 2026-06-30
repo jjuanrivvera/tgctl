@@ -6,10 +6,15 @@
   "pagination": "offset (getUpdates offset/limit)",
   "resources": [
     { "name": "bot",      "verbs": ["info", "set-name", "get-name", "set-description", "get-description"], "key_fields": ["id", "username", "first_name"] },
-    { "name": "message",  "verbs": ["send", "edit", "delete", "forward", "copy", "pin", "unpin"], "key_fields": ["message_id", "chat", "text"] },
-    { "name": "media",    "verbs": ["photo", "document", "video"], "key_fields": ["message_id", "chat"] },
-    { "name": "chat",     "verbs": ["get", "members-count", "administrators", "member", "leave"], "key_fields": ["id", "type", "title"] },
+    { "name": "message",  "verbs": ["send", "edit", "delete", "forward", "copy", "pin", "unpin", "react", "location", "venue", "contact", "poll", "dice"], "key_fields": ["message_id", "chat", "text"] },
+    { "name": "media",    "verbs": ["photo", "document", "video", "audio", "voice", "animation", "video-note", "sticker", "media-group"], "key_fields": ["message_id", "chat"] },
+    { "name": "chat",     "verbs": ["get", "members-count", "administrators", "member", "leave", "set-title", "set-description"], "key_fields": ["id", "type", "title"] },
     { "name": "member",   "verbs": ["ban", "unban", "restrict", "promote"], "key_fields": ["status", "user"] },
+    { "name": "invite",   "verbs": ["create", "edit", "revoke"], "key_fields": ["invite_link", "name", "is_primary"] },
+    { "name": "user",     "verbs": ["photos"], "read_only": true, "key_fields": ["total_count"] },
+    { "name": "file",     "verbs": ["info"], "key_fields": ["file_id", "file_path", "file_size"] },
+    { "name": "callback", "verbs": ["answer"], "key_fields": ["callback_query_id"] },
+    { "name": "inline",   "verbs": ["answer"], "key_fields": ["inline_query_id"] },
     { "name": "updates",  "verbs": ["get"], "read_only": true, "key_fields": ["update_id", "message"] },
     { "name": "webhook",  "verbs": ["info", "set", "delete"], "key_fields": ["url", "pending_update_count"] },
     { "name": "commands", "verbs": ["list", "set", "delete"], "key_fields": ["command", "description"] }

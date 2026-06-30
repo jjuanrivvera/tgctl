@@ -49,11 +49,15 @@ Download from the [latest release](https://github.com/jjuanrivvera/tgctl/release
 tgctl bot info                                   # who am I?
 tgctl message send --chat @me --text "hi"        # send a message
 tgctl media photo --chat @me --photo ./cat.jpg   # upload a photo
+tgctl media audio --chat @me --audio ./song.mp3  # audio, voice, animation, sticker, ...
+tgctl message poll --chat @g --question "Lunch?" --options '[{"text":"A"},{"text":"B"}]'
+tgctl message location --chat @me --latitude 3.45 --longitude -76.53
+tgctl file download --file-id <id> --dest ./out.jpg   # getFile + download the bytes
 tgctl chat get --chat @telegram -o json          # chat metadata as JSON
 tgctl chat administrators --chat @mygroup        # list admins
-tgctl webhook info                               # webhook status
+tgctl invite create --chat @mygroup --member-limit 100   # one-off invite link
+tgctl callback answer --callback-query-id <id> --text "Saved!"
 tgctl webhook listen --port 8080 -o json         # receive + print webhook updates locally
-tgctl commands set --commands '[{"command":"start","description":"Begin"}]'
 tgctl api getMe --idempotent                     # raw escape hatch for any method
 ```
 
@@ -72,16 +76,20 @@ A single renderer serves every command. Pick a format with `-o/--output`:
 - `--columns a,b,c` selects/orders columns; `--jq '<expr>'` filters with a built-in gojq.
 - Notes and warnings go to **stderr** so stdout stays pipe-clean.
 
-## Profiles (multiple bots)
+## Multiple bots (`--bot`)
+
+A profile is one bot, so select it with `--bot` (the old `--profile` flag still works as a
+hidden alias):
 
 ```sh
-tgctl auth login --profile staging          # a second bot
-tgctl --profile staging bot info
+tgctl auth login --bot staging              # a second bot
+tgctl --bot staging bot info
 tgctl config use staging                    # make it the default
 tgctl config list-profiles
 ```
 
-Token precedence: `$TGCTL_TOKEN` > `$TELEGRAM_BOT_TOKEN` > the active profile's keyring entry.
+Bot selection precedence: `--bot` > `$TGCTL_BOT` > `$TGCTL_PROFILE` (legacy) > the active bot.
+Token precedence: `$TGCTL_TOKEN` > `$TELEGRAM_BOT_TOKEN` > the active bot's keyring entry.
 Point `--base-url` at a [self-hosted Local Bot API Server](https://github.com/tdlib/telegram-bot-api)
 if you run one.
 
@@ -95,8 +103,8 @@ tgctl mcp claude                 # install into Claude Desktop
 ```
 
 Setup/secret commands (`auth`, `config`, the raw `api` hatch) are **not** exposed, and the
-token/profile flags never reach the tool schema. Generate host safety rules that hard-block
-irreversible operations:
+token and bot-selection flags (`--bot`/`--profile`) never reach the tool schema. Generate host
+safety rules that hard-block irreversible operations:
 
 ```sh
 tgctl agent guard --host claude-code     # deny delete/leave/ban; ask on writes; allow reads

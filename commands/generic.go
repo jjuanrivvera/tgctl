@@ -38,6 +38,7 @@ type flagKind int
 const (
 	flagString flagKind = iota
 	flagInt
+	flagFloat
 	flagBool
 	flagStringSlice
 	flagJSON // value parsed as JSON and sent as-is (objects/arrays, e.g. reply_markup)
@@ -223,6 +224,8 @@ func bindFlags(cmd *cobra.Command, mc methodCmd) {
 			f.StringP(fs.Name, fs.Short, fs.Default, fs.Usage)
 		case flagInt:
 			f.Int64P(fs.Name, fs.Short, 0, fs.Usage)
+		case flagFloat:
+			f.Float64P(fs.Name, fs.Short, 0, fs.Usage)
 		case flagBool:
 			f.BoolP(fs.Name, fs.Short, false, fs.Usage)
 		case flagStringSlice:
@@ -255,6 +258,9 @@ func collectParams(cmd *cobra.Command, mc methodCmd) (map[string]any, error) {
 			params[fs.param()] = v
 		case flagInt:
 			v, _ := f.GetInt64(fs.Name)
+			params[fs.param()] = v
+		case flagFloat:
+			v, _ := f.GetFloat64(fs.Name)
 			params[fs.param()] = v
 		case flagBool:
 			v, _ := f.GetBool(fs.Name)

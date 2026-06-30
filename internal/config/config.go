@@ -155,9 +155,11 @@ func (c *Config) ProfileNames() []string {
 	return names
 }
 
-// ResolveProfileName applies precedence: explicit flag > TGCTL_PROFILE > current_profile > default.
+// ResolveProfileName applies precedence: explicit flag > TGCTL_BOT > TGCTL_PROFILE (legacy) >
+// current_profile > default. A profile is one bot, so TGCTL_BOT is the primary env var and
+// TGCTL_PROFILE is kept as a back-compat alias.
 func (c *Config) ResolveProfileName(flag string) string {
-	return FirstNonEmpty(flag, os.Getenv("TGCTL_PROFILE"), c.CurrentProfile, DefaultProfile)
+	return FirstNonEmpty(flag, os.Getenv("TGCTL_BOT"), os.Getenv("TGCTL_PROFILE"), c.CurrentProfile, DefaultProfile)
 }
 
 // FirstNonEmpty returns the first non-empty string — the manual precedence helper used

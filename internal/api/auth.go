@@ -14,6 +14,10 @@ type Authenticator interface {
 	RequestURL(baseURL, method string) string
 	// RedactedURL returns the same URL with the secret masked, for --dry-run and logs.
 	RedactedURL(baseURL, method string) string
+	// FileURL builds the download URL for a file_path returned by getFile.
+	FileURL(baseURL, filePath string) string
+	// RedactedFileURL returns the file download URL with the secret masked.
+	RedactedFileURL(baseURL, filePath string) string
 	// Method is the non-secret auth method name recorded in the profile.
 	Method() string
 }
@@ -45,6 +49,16 @@ func (a *BotTokenAuth) RequestURL(baseURL, method string) string {
 
 func (a *BotTokenAuth) RedactedURL(baseURL, method string) string {
 	return fmt.Sprintf("%s/bot%s/%s", strings.TrimRight(baseURL, "/"), RedactToken(a.Token), method)
+}
+
+// FileURL builds the URL to download a file. The Bot API serves files from a /file/ prefix
+// (https://core.telegram.org/bots/api#getfile), distinct from the method-call path.
+func (a *BotTokenAuth) FileURL(baseURL, filePath string) string {
+	return fmt.Sprintf("%s/file/bot%s/%s", strings.TrimRight(baseURL, "/"), a.Token, strings.TrimLeft(filePath, "/"))
+}
+
+func (a *BotTokenAuth) RedactedFileURL(baseURL, filePath string) string {
+	return fmt.Sprintf("%s/file/bot%s/%s", strings.TrimRight(baseURL, "/"), RedactToken(a.Token), strings.TrimLeft(filePath, "/"))
 }
 
 // BotID returns the non-secret numeric prefix of the token (the bot's user id).

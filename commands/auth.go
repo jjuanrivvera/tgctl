@@ -32,7 +32,7 @@ func authLoginCmd() *cobra.Command {
 		Long:  "Capture a bot token (from @BotFather), verify it against getMe, and save it to the keyring for the active profile.",
 		Example: `  tgctl auth login                      # prompt for the token (hidden input)
   tgctl auth login --token 123:ABC...   # non-interactive
-  TGCTL_PROFILE=staging tgctl auth login`,
+  tgctl auth login --bot staging        # store under a named bot/profile`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			profileName, cfg, err := resolveProfileName(cmd)
 			if err != nil {

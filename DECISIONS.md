@@ -24,6 +24,8 @@ never silently re-decide.
 | Auth methods | Single method: **bot token** (`<bot_id>:<hash>`) in the URL path | The Bot API has exactly one credential. Modeled behind the same `Authenticator` interface so it scales to the simple case. |
 | Token env var | `TGCTL_TOKEN` (primary), `TELEGRAM_BOT_TOKEN` (recognized alias) | Namespaced primary per house rule; the conventional name accepted for convenience. |
 | Profiles | **Yes** (multi-bot) | Operators commonly run several bots; profile records bot id + base URL, secret in keyring. |
+| Profile flag name | User-facing flag is **`--bot`** (env `TGCTL_BOT`); `--profile`/`TGCTL_PROFILE` kept as hidden, still-working aliases | For Telegram a profile *is* a bot, so `--bot` reads truer; the alias keeps existing scripts working. Both names are excluded from the MCP tool schema. |
+| Float params | Generic builder gained a `flagFloat` kind | `sendLocation`/`sendVenue` take `latitude`/`longitude` floats; string-encoding them risks API rejection. |
 | `base_url` override | `--base-url` / config (default `https://api.telegram.org`) | Supports self-hosted [Local Bot API Server](https://github.com/tdlib/telegram-bot-api). |
 | CSV output | Kept | Most list results (updates, administrators, commands) are tabular. |
 | "id" rendering | `ID` flexible type (string-or-number) | chat_id / user_id are large int64; render as string to avoid >2^53 precision loss. |
@@ -35,6 +37,11 @@ never silently re-decide.
   Excluded from the MCP surface (a blocking server must never be an agent tool). Not in
   `api-manifest.json` because that manifest tracks the pure API surface; spec-check only
   enforces a minimum, so value-adds beyond it are allowed.
+- **`file download`** — resolves a `file_id` (getFile) and streams the file's bytes from the
+  Bot API's `/file/` endpoint to a local path or stdout. Two steps, not one method, so it's an
+  `Extra` on the `file` group (same pattern as `webhook listen`); `file info` is the pure
+  getFile wrap. Not in `api-manifest.json` for the same reason. The token is embedded by the
+  authenticator (`FileURL`) and never logged.
 
 ## Resource set (derived from the Bot API method surface; see api-manifest.json)
 Grouped by noun; verbs map 1:1 to Bot API methods. Read-only verbs annotated read-only for

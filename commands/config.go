@@ -69,7 +69,7 @@ func configSetCmd() *cobra.Command {
 		Short: "Set a per-profile option (key: base_url)",
 		Long:  "Set a non-secret option on the active profile. Supported keys: base_url.",
 		Example: `  tgctl config set base_url https://api.telegram.org
-  tgctl --profile staging config set base_url http://localhost:8081`,
+  tgctl --bot staging config set base_url http://localhost:8081`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			key, value := args[0], args[1]
@@ -111,7 +111,7 @@ func configUseCmd() *cobra.Command {
 				return err
 			}
 			if _, ok := cfg.Profile(args[0]); !ok {
-				return fmt.Errorf("no such profile %q — create it with `tgctl auth login --profile %s`", args[0], args[0])
+				return fmt.Errorf("no such profile %q — create it with `tgctl auth login --bot %s`", args[0], args[0])
 			}
 			cfg.CurrentProfile = args[0]
 			if err := cfg.Save(); err != nil {

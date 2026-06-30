@@ -153,6 +153,40 @@ func (c *Client) Upload(ctx context.Context, method string, params map[string]an
 	return c.do(ctx, req)
 }
 
+// DownloadFile streams a Bot API file — identified by the file_path getFile returns — to w,
+// returning the number of bytes copied. Files are served from a /file/ URL distinct from the
+// method-call path; the token is embedded by the authenticator and never written to w or logs.
+func (c *Client) DownloadFile(ctx context.Context, filePath string, w io.Writer) (int64, error) {
+	if err := c.limiter.wait(ctx); err != nil {
+		return 0, err
+	}
+	url := c.auth.FileURL(c.baseURL, filePath)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return 0, err
+	}
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return 0, fmt.Errorf("download %s: %w", filePath, err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<10))
+		return 0, &APIError{
+			StatusCode:  resp.StatusCode,
+			Code:        resp.StatusCode,
+			Description: fmt.Sprintf("file download failed: %s", truncate(strings.TrimSpace(string(body)), 200)),
+			Method:      "getFile",
+		}
+	}
+	return io.Copy(w, resp.Body)
+}
+
+// RedactedFileURL returns the download URL for a file_path with the token masked (for --dry-run).
+func (c *Client) RedactedFileURL(filePath string) string {
+	return c.auth.RedactedFileURL(c.baseURL, filePath)
+}
+
 type preparedRequest struct {
 	method      string
 	contentType string

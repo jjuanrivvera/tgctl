@@ -173,6 +173,41 @@ func TestClient_CallInto_DecodesResult(t *testing.T) {
 	assert.Equal(t, ID("42"), u.ID)
 }
 
+func TestClient_DownloadFile(t *testing.T) {
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Contains(t, r.URL.Path, "/file/bot")
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/photos/x.jpg"))
+		_, _ = w.Write([]byte("FILEBYTES"))
+	})
+	var buf bytes.Buffer
+	n, err := c.DownloadFile(t.Context(), "photos/x.jpg", &buf)
+	require.NoError(t, err)
+	assert.EqualValues(t, len("FILEBYTES"), n)
+	assert.Equal(t, "FILEBYTES", buf.String())
+}
+
+func TestClient_DownloadFile_HTTPError(t *testing.T) {
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte("not found"))
+	})
+	var buf bytes.Buffer
+	_, err := c.DownloadFile(t.Context(), "photos/missing.jpg", &buf)
+	require.Error(t, err)
+	var ae *APIError
+	require.ErrorAs(t, err, &ae)
+	assert.Equal(t, http.StatusNotFound, ae.Code)
+}
+
+func TestClient_RedactedFileURL(t *testing.T) {
+	auth, _ := NewBotTokenAuth("999:SECRETHASHVALUE12345")
+	c := New(auth, WithBaseURL("https://api.telegram.org"))
+	url := c.RedactedFileURL("photos/x.jpg")
+	assert.Equal(t, "https://api.telegram.org/file/bot999:<redacted>/photos/x.jpg", url)
+	assert.NotContains(t, url, "SECRETHASHVALUE12345")
+}
+
 func TestClient_ContextCancelled(t *testing.T) {
 	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		okJSON(w, `{}`)

@@ -16,12 +16,12 @@ Read chat metadata, member counts, administrators, and individual members; leave
 
 ```
       --base-url string   Bot API base URL (default https://api.telegram.org)
+      --bot string        bot to use: a named profile/credential (env TGCTL_BOT)
       --columns strings   explicit, ordered table/csv columns
       --dry-run           print the equivalent curl and make no request
       --jq string         gojq expression applied to the result before rendering
       --no-color          disable colored output
   -o, --output string     output format: table|json|yaml|csv|id (default "table")
-      --profile string    profile/instance to use (env TGCTL_PROFILE)
       --quiet             suppress notes on stderr
       --rps float         client-side requests-per-second cap (0 = default)
       --show-token        do not redact the bot token in --dry-run output
@@ -36,4 +36,6 @@ Read chat metadata, member counts, administrators, and individual members; leave
 * [tgctl chat leave](tgctl_chat_leave.md)	 - Make the bot leave a chat
 * [tgctl chat member](tgctl_chat_member.md)	 - Show one member's status in a chat
 * [tgctl chat members-count](tgctl_chat_members-count.md)	 - Show the number of members in a chat
+* [tgctl chat set-description](tgctl_chat_set-description.md)	 - Change a chat's description
+* [tgctl chat set-title](tgctl_chat_set-title.md)	 - Change a chat's title
 

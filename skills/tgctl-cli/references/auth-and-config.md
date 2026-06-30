@@ -7,14 +7,18 @@
 - The config file (`~/.tgctl-cli/config.yaml`, or `$XDG_CONFIG_HOME/tgctl/config.yaml`) stores
   only non-secret data (base URL, bot id, auth method). Permissions are `0600`.
 
-## Profiles (multiple bots)
+## Bots / profiles (`--bot`)
+A profile is one bot, so select it with `--bot`. The old `--profile` flag still works as a
+hidden alias, so existing scripts don't break.
 ```sh
-tgctl auth login --profile staging      # add a second bot
-tgctl --profile staging bot info        # one-off use
+tgctl auth login --bot staging          # add a second bot
+tgctl --bot staging bot info            # one-off use
 tgctl config use staging                # set the default
 tgctl config list-profiles              # see them all
 tgctl config set base_url http://localhost:8081   # self-hosted Local Bot API Server
 ```
+Selection precedence: `--bot` > `$TGCTL_BOT` > `$TGCTL_PROFILE` (legacy) > the active bot >
+`default`.
 
 ## Self-hosted Bot API server
 Point `--base-url` (or the profile's `base_url`) at a

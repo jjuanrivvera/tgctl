@@ -17,8 +17,9 @@ var excludedFromMCP = []string{
 }
 
 // secretFlags must never reach the MCP tool schema: an agent must not read the token or
-// switch instances/profiles. The server uses whatever profile is active at startup.
-var secretFlags = []string{"show-token", "profile", "base-url"}
+// switch bots. The server uses whatever bot/profile is active at startup. Both the --bot flag
+// and its deprecated --profile alias are excluded.
+var secretFlags = []string{"show-token", "bot", "profile", "base-url"}
 
 func init() {
 	register(func(root *cobra.Command) {

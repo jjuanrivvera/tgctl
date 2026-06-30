@@ -55,6 +55,18 @@ func TestResolveProfileName_Precedence(t *testing.T) {
 	assert.Equal(t, DefaultProfile, empty.ResolveProfileName(""))
 }
 
+func TestResolveProfileName_BotEnv(t *testing.T) {
+	c := &Config{}
+	t.Setenv("TGCTL_PROFILE", "")
+	t.Setenv("TGCTL_BOT", "frombot")
+	assert.Equal(t, "frombot", c.ResolveProfileName(""))
+	assert.Equal(t, "flag", c.ResolveProfileName("flag"), "flag still wins over env")
+
+	// TGCTL_BOT takes precedence over the legacy TGCTL_PROFILE alias.
+	t.Setenv("TGCTL_PROFILE", "legacy")
+	assert.Equal(t, "frombot", c.ResolveProfileName(""))
+}
+
 func TestValidateProfileName(t *testing.T) {
 	for _, ok := range []string{"default", "prod", "my-bot_2"} {
 		assert.NoError(t, ValidateProfileName(ok), ok)

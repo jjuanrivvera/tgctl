@@ -6,6 +6,21 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- Expanded Bot API coverage with new verbs:
+  - Media sends: `media audio`, `media voice`, `media animation`, `media video-note`,
+    `media sticker`, `media media-group`.
+  - Rich message sends: `message location`, `message venue`, `message contact`, `message poll`,
+    `message dice`, and `message react` (setMessageReaction).
+  - Files: `file info` (getFile) and `file download` (getFile + stream the bytes to disk).
+  - Callbacks/inline: `callback answer` (answerCallbackQuery), `inline answer` (answerInlineQuery).
+  - Chat admin: `invite create|edit|revoke`, `chat set-title`, `chat set-description`,
+    `user photos` (getUserProfilePhotos).
+
+### Changed
+- The multi-bot selection flag is now `--bot` (a profile is one bot). `--profile` remains as a
+  hidden, still-working alias, and `$TGCTL_BOT` is recognized ahead of the legacy `$TGCTL_PROFILE`.
+
 ## [0.1.0] - 2026-06-29
 
 ### Added

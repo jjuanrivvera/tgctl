@@ -34,6 +34,16 @@ func TestBotTokenAuth_URLs(t *testing.T) {
 	assert.False(t, strings.Contains(red, "SECRETHASH"))
 }
 
+func TestBotTokenAuth_FileURLs(t *testing.T) {
+	a, _ := NewBotTokenAuth("123456:SECRETHASH")
+	url := a.FileURL("https://api.telegram.org/", "photos/file_1.jpg")
+	assert.Equal(t, "https://api.telegram.org/file/bot123456:SECRETHASH/photos/file_1.jpg", url)
+
+	red := a.RedactedFileURL("https://api.telegram.org", "/photos/file_1.jpg")
+	assert.Equal(t, "https://api.telegram.org/file/bot123456:<redacted>/photos/file_1.jpg", red)
+	assert.False(t, strings.Contains(red, "SECRETHASH"))
+}
+
 func TestRedactToken(t *testing.T) {
 	assert.Equal(t, "123:<redacted>", RedactToken("123:abcdef"))
 	assert.Equal(t, "***", RedactToken("garbage"))

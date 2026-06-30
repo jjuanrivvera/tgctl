@@ -45,13 +45,24 @@ tgctl updates get --limit 5 -o json --jq '.[].message.text'   # verify / read ba
 |---|---|
 | Send a message | `tgctl message send --chat <chat> --text "..."` |
 | Send a photo/file | `tgctl media photo --chat <chat> --photo ./pic.jpg` |
+| Send audio/voice/animation/sticker | `tgctl media audio\|voice\|animation\|video-note\|sticker --chat <c> --<kind> <file>` |
+| Send an album | `tgctl media media-group --chat <c> --media '[{"type":"photo","media":"<url>"}]'` |
+| Send location/venue/contact | `tgctl message location\|venue\|contact --chat <c> ...` |
+| Send a poll / dice | `tgctl message poll --chat <c> --question "..." --options '[{"text":"A"}]'` / `tgctl message dice --chat <c>` |
+| React to a message | `tgctl message react --chat <c> --message-id <id> --reaction '[{"type":"emoji","emoji":"👍"}]'` |
 | Edit / delete a message | `tgctl message edit ...` / `tgctl message delete --chat <c> --message-id <id>` |
 | Pin / forward / copy | `tgctl message pin\|forward\|copy ...` |
+| Get / download a file | `tgctl file info --file-id <id>` / `tgctl file download --file-id <id> --dest ./out` |
 | Chat info / members | `tgctl chat get --chat <c>` / `tgctl chat administrators --chat <c>` |
+| Set chat title / description | `tgctl chat set-title\|set-description --chat <c> ...` |
+| Invite links | `tgctl invite create\|edit\|revoke --chat <c> ...` |
+| User profile photos | `tgctl user photos --user <id>` |
 | Moderate a member | `tgctl member ban\|unban\|restrict\|promote --chat <c> --user <id>` |
+| Answer callback / inline query | `tgctl callback answer --callback-query-id <id> ...` / `tgctl inline answer --inline-query-id <id> --results '[...]'` |
 | Poll updates | `tgctl updates get --limit N [--offset M] -o json` |
 | Webhook | `tgctl webhook info\|set\|delete` |
 | Bot command menu | `tgctl commands list\|set\|delete` |
+| Use a second bot | `tgctl --bot <name> ...` (set up with `tgctl auth login --bot <name>`) |
 | Any other method | `tgctl api <method> -q key=value [--idempotent]` |
 
 Add `-o json|yaml|csv|id`, `--columns a,b`, or `--jq '<expr>'` to any command to shape output.

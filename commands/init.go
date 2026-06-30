@@ -18,7 +18,7 @@ func init() {
 			Short:   "First-run wizard: pick a base URL, capture a token, and smoke-test",
 			Long:    "Interactively set up a profile: choose the base URL (default https://api.telegram.org), paste a bot token, verify it, and store it in the keyring.",
 			Example: `  tgctl init
-  tgctl init --profile staging`,
+  tgctl init --bot staging`,
 			RunE: func(cmd *cobra.Command, _ []string) error {
 				profileName, cfg, err := resolveProfileName(cmd)
 				if err != nil {

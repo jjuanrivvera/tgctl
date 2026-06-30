@@ -64,8 +64,9 @@ func NewRootCmd() *cobra.Command {
 // commandGroups assigns each top-level command to a gh-style section so `--help` reads like a
 // first-party tool instead of one flat alphabetical list.
 var commandGroups = map[string]string{
-	"message": "messaging", "media": "messaging",
-	"chat": "chats", "member": "chats", "updates": "chats",
+	"message": "messaging", "media": "messaging", "file": "messaging",
+	"callback": "messaging", "inline": "messaging",
+	"chat": "chats", "member": "chats", "invite": "chats", "user": "chats", "updates": "chats",
 	"bot": "config", "commands": "config", "webhook": "config",
 	"auth": "meta", "config": "meta", "init": "meta", "doctor": "meta",
 	"alias": "meta", "api": "meta", "version": "meta", "completion": "meta",
@@ -90,7 +91,11 @@ func groupCommands(root *cobra.Command) {
 func addGlobalFlags(root *cobra.Command) {
 	pf := root.PersistentFlags()
 	pf.StringP("output", "o", "table", "output format: table|json|yaml|csv|id")
-	pf.String("profile", "", "profile/instance to use (env TGCTL_PROFILE)")
+	// A tgctl "profile" is one bot, so the user-facing flag is --bot. --profile stays as a
+	// hidden, still-working alias so existing scripts don't break.
+	pf.String("bot", "", "bot to use: a named profile/credential (env TGCTL_BOT)")
+	pf.String("profile", "", "deprecated alias for --bot")
+	_ = pf.MarkHidden("profile")
 	pf.String("base-url", "", "Bot API base URL (default https://api.telegram.org)")
 	pf.Bool("dry-run", false, "print the equivalent curl and make no request")
 	pf.Bool("show-token", false, "do not redact the bot token in --dry-run output")
@@ -107,7 +112,7 @@ func addGlobalFlags(root *cobra.Command) {
 // Token precedence: $TGCTL_TOKEN > $TELEGRAM_BOT_TOKEN > the profile's keyring entry.
 func clientFromCmd(cmd *cobra.Command) (*api.Client, error) {
 	f := cmd.Flags()
-	profileFlag, _ := f.GetString("profile")
+	profileFlag := resolveBotFlag(cmd)
 	baseURLFlag, _ := f.GetString("base-url")
 	dryRun, _ := f.GetBool("dry-run")
 	showToken, _ := f.GetBool("show-token")
@@ -182,6 +187,15 @@ func resolveProfileName(cmd *cobra.Command) (string, *config.Config, error) {
 	if err != nil {
 		return "", nil, err
 	}
-	pf, _ := cmd.Flags().GetString("profile")
-	return cfg.ResolveProfileName(pf), cfg, nil
+	return cfg.ResolveProfileName(resolveBotFlag(cmd)), cfg, nil
+}
+
+// resolveBotFlag returns the selected bot from the --bot flag, falling back to the deprecated
+// --profile alias, so existing scripts that pass --profile keep working unchanged.
+func resolveBotFlag(cmd *cobra.Command) string {
+	if bot, _ := cmd.Flags().GetString("bot"); bot != "" {
+		return bot
+	}
+	prof, _ := cmd.Flags().GetString("profile")
+	return prof
 }

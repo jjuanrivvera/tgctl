@@ -40,6 +40,25 @@ func init() {
 				Example: `  tgctl chat leave --chat @group`,
 				Flags:   []flagSpec{chatFlag()},
 			},
+			{
+				Use: "set-title", Method: "setChatTitle", Kind: kindWrite,
+				Short:   "Change a chat's title",
+				Example: `  tgctl chat set-title --chat @group --title "New title"`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "title", Required: true, Usage: "new chat title (1-128 chars)"},
+				},
+			},
+			{
+				Use: "set-description", Method: "setChatDescription", Kind: kindWrite,
+				Short: "Change a chat's description",
+				Example: `  tgctl chat set-description --chat @group --description "What this group is about"
+  tgctl chat set-description --chat @group --description ""   # clear it`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "description", Usage: "new chat description (0-255 chars; empty clears it)"},
+				},
+			},
 		},
 	})
 }
