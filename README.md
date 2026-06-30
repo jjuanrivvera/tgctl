@@ -6,6 +6,8 @@ the bot's command menu, and poll updates — with table/JSON/YAML/CSV output, na
 for multiple bots, OS-keyring token storage, and an MCP server so AI agents can drive it
 safely.
 
+> 🏭 Built with [cliwright](https://github.com/jjuanrivvera/cliwright) — a spec-gated CLI factory.
+
 ```console
 $ tgctl auth login                 # store a @BotFather token in your OS keyring
 $ tgctl bot info
@@ -136,6 +138,18 @@ make verify       # the full acceptance gate (check + spec-check + coverage + Do
 
 See [AGENTS.md](AGENTS.md) for the architecture and house rules, and
 [DECISIONS.md](DECISIONS.md) for the pinned design rulings.
+
+## Roadmap / Pending
+
+`tgctl` is useful today but the API surface is still partial — 52 verbs are wrapped, while the
+Bot API has ~100+ methods. Known gaps:
+
+- **More Bot API coverage** — member management beyond the basics, forum topics, sticker-set
+  management, payments/invoices, games, business-connection, boosts, and more chat-admin setters.
+- **Packaging** — no Docker image and no `install.sh` one-liner yet.
+
+(cliwright now has a spec-completeness gate that would have caught the under-coverage; `tgctl`
+predates it.)
 
 ## License
 
