@@ -20,6 +20,13 @@ $ tgctl updates get --limit 5 -o json | jq '.[].message.text'
 
 ## Install
 
+### curl | sh (macOS/Linux)
+Downloads the release archive for your OS/arch and verifies its SHA-256 against the release
+`checksums.txt` before installing:
+```sh
+curl -fsSL https://raw.githubusercontent.com/jjuanrivvera/tgctl/main/install.sh | sh
+```
+
 ### Homebrew (macOS/Linux)
 ```sh
 brew install jjuanrivvera/tgctl/tgctl-cli
@@ -29,6 +36,11 @@ brew install jjuanrivvera/tgctl/tgctl-cli
 ```sh
 scoop bucket add tgctl https://github.com/jjuanrivvera/scoop-tgctl
 scoop install tgctl
+```
+
+### Docker
+```sh
+docker run --rm -e TGCTL_TOKEN=123:ABC ghcr.io/jjuanrivvera/tgctl bot info
 ```
 
 ### Go
@@ -59,6 +71,9 @@ tgctl chat get --chat @telegram -o json          # chat metadata as JSON
 tgctl chat administrators --chat @mygroup        # list admins
 tgctl invite create --chat @mygroup --member-limit 100   # one-off invite link
 tgctl callback answer --callback-query-id <id> --text "Saved!"
+tgctl forum create --chat @mygroup --name "Announcements"  # forum topic management
+tgctl member set-title --chat @mygroup --user 123 --title "Community Lead"
+tgctl stars transactions --limit 20              # Telegram Stars balance ledger
 tgctl webhook listen --port 8080 -o json         # receive + print webhook updates locally
 tgctl api getMe --idempotent                     # raw escape hatch for any method
 ```
@@ -133,23 +148,37 @@ Full command reference: [`docs/commands/`](docs/commands/tgctl.md). Build the do
 ```sh
 make build        # build to bin/tgctl
 make check        # fmt + vet + lint + test
-make verify       # the full acceptance gate (check + spec-check + coverage + DoD + judge)
+make verify       # deterministic gate: check + spec-check + spec-completeness + coverage + DoD
+make judge        # the LLM-scored subjective gate (needs an agent; build-acceptance only)
+make accept       # verify + judge — the full build-acceptance gate
 ```
+
+`make verify` is what CI runs; it is deterministic and spends no tokens. `make judge` is kept
+out of the routine gate because it needs an agent (`claude`/`codex`) and scores subjective
+Definition-of-Done items an LLM can judge but a grep can't.
 
 See [AGENTS.md](AGENTS.md) for the architecture and house rules, and
 [DECISIONS.md](DECISIONS.md) for the pinned design rulings.
 
 ## Roadmap / Pending
 
-`tgctl` is useful today but the API surface is still partial — 52 verbs are wrapped, while the
-Bot API has ~100+ methods. Known gaps:
+`tgctl` wraps **109 of the 135** methods in the Telegram Bot API (v8.3, enumerated from the
+[ark0f/tg-bot-api](https://ark0f.github.io/tg-bot-api/) machine spec) — **80%** coverage,
+enforced by the `spec-completeness` gate. Done since the first cut:
 
-- **More Bot API coverage** — member management beyond the basics, forum topics, sticker-set
-  management, payments/invoices, games, business-connection, boosts, and more chat-admin setters.
-- **Packaging** — no Docker image and no `install.sh` one-liner yet.
+- **Bot API coverage 52 → 109 verbs** — full member/admin management, forum topics (incl. the
+  General topic), chat-admin setters (photo, permissions, sticker set, menu button, unpin-all),
+  the `edit*` message family + bulk copy/forward/delete, chat/user verification, Telegram Stars
+  (transactions, gifts, refunds, subscriptions, paid media), invite export + subscription links,
+  and bot short-description / default-admin-rights / close / logout.
+- **Packaging** — multi-stage `Dockerfile` + a distroless GHCR image, and a checksum-verifying
+  `install.sh` (`curl | sh`) one-liner.
 
-(cliwright now has a spec-completeness gate that would have caught the under-coverage; `tgctl`
-predates it.)
+Deliberately deferred (recorded as a `coverage-waiver` in [DECISIONS.md](DECISIONS.md) so the
+completeness gate accounts for them, not a silent gap): five self-contained niche families —
+**sticker-set authoring, payments/invoices, games, Telegram Passport, and business-connection**.
+Each is the same declarative pattern to add (manifest verb → group `methodCmd` → mocked test)
+when a real need shows up; the waiver line is removed once coverage clears the threshold.
 
 ## License
 

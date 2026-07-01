@@ -28,6 +28,26 @@ archives:
 
 checksum: { name_template: checksums.txt }
 
+# Docker: a tiny distroless image built from the prebuilt static amd64 binary.
+# CI snapshot runs pass --skip=docker (no registry auth on PRs); the real image is built and
+# pushed to GHCR at tag time (the release workflow logs in to ghcr.io first).
+dockers:
+  - id: tgctl
+    ids: [tgctl]
+    goos: linux
+    goarch: amd64
+    dockerfile: Dockerfile.goreleaser
+    image_templates:
+      - "ghcr.io/jjuanrivvera/tgctl:{{ .Version }}"
+      - "ghcr.io/jjuanrivvera/tgctl:v{{ .Major }}"
+      - "ghcr.io/jjuanrivvera/tgctl:latest"
+    build_flag_templates:
+      - "--label=org.opencontainers.image.title=tgctl"
+      - "--label=org.opencontainers.image.description=A fast, scriptable CLI for the Telegram Bot API"
+      - "--label=org.opencontainers.image.source=https://github.com/jjuanrivvera/tgctl"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
 # An explicit release block — without it, `goreleaser check` errors on a fresh repo
 # ("scm releases: no remote configured to list refs from").
 release:
