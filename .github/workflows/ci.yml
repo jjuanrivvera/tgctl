@@ -1,6 +1,9 @@
 # .github/workflows/ci.yml — copied into a generated CLI by cliwright (GOAL.md §6).
-# Key trap: use the prebuilt gosec ACTION, not `go install` of a pinned old scanner
-# (an old gosec/govulncheck won't compile under a newer Go toolchain).
+# CI runs the DETERMINISTIC acceptance gate (`make verify`): build, test, lint, spec-check,
+# spec-completeness, coverage, and the Definition-of-Done checks. It never runs `make judge`
+# (the LLM-scored gate) — that needs an agent and is a build-acceptance-time step only.
+# Key trap: build golangci-lint/gosec/govulncheck from source with the job's Go, not a pinned
+# prebuilt action (an old scanner can't compile under a newer Go toolchain).
 name: CI
 on:
   push: { branches: [main, develop] }
@@ -9,21 +12,22 @@ on:
 permissions: { contents: read }
 
 jobs:
-  lint:
+  verify:
+    # The single source of truth for "is it green": the same `make verify` a dev runs locally.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }   # tags for the version stamp; full tree for spec-check
       - uses: actions/setup-go@v5
         with: { go-version: stable }
-      - run: gofmt -l . | tee /dev/stderr | (! read)
-      - run: go vet ./...
-      - name: golangci-lint
-        # Run golangci-lint directly rather than via the action: built from source with this
-        # job's Go 1.25 (the prebuilt binaries lag and target Go 1.24, which can't analyze a
-        # go1.25 module), and it avoids the action's incompatible config-verify wrapper.
-        run: |
-          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-          golangci-lint run ./...
+      - name: gofmt (fail on unformatted)
+        run: gofmt -l . | tee /dev/stderr | (! read)
+      - name: golangci-lint (from source, this job's Go)
+        # Built from source rather than via the action: the prebuilt binaries lag the Go
+        # toolchain and can't analyze a newer-Go module.
+        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+      - name: make verify (deterministic gate — no judge)
+        run: make verify
       - name: docs-gen drift check
         run: make docs-gen && git diff --exit-code -- docs/commands
 
@@ -38,14 +42,15 @@ jobs:
           go install golang.org/x/vuln/cmd/govulncheck@latest
           govulncheck ./...
       - name: gosec (high-severity gate)
-        # Built from source with this job's Go (1.25) for the same reason as golangci-lint:
-        # the pinned prebuilt action lagged the Go toolchain and could no longer parse the
-        # go1.25 module. @latest compiled here always matches the module's Go.
+        # Built from source with this job's Go for the same reason as golangci-lint: the pinned
+        # prebuilt action lagged the toolchain and could no longer parse a newer-Go module.
         run: |
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           gosec -severity high -confidence medium ./...
 
   test:
+    # Cross-platform race + coverage. Windows is in the matrix so path/tempdir/pipe portability
+    # regressions fail here rather than in the wild.
     strategy:
       matrix: { os: [ubuntu-latest, macos-latest, windows-latest] }
     runs-on: ${{ matrix.os }}

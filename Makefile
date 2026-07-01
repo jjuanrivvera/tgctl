@@ -10,6 +10,8 @@ LDFLAGS     := -s -w \
   -X $(MODULE)/internal/version.Commit=$(COMMIT) \
   -X $(MODULE)/internal/version.Date=$(DATE)
 COVERAGE_MIN ?= 80
+# spec-completeness: min % of the enumerated full Bot API the manifest must wrap
+API_COVERAGE_MIN ?= 90
 
 .DEFAULT_GOAL := build
 
@@ -34,12 +36,21 @@ cover-check: test-coverage ; ./scripts/cover-check.sh $(COVERAGE_MIN)
 check: fmt vet lint test ## the local quality gate
 
 ## --- the acceptance gate (cliwright) ---
-# verify == "done and high". The /goal completion promise binds to this exiting 0.
-verify: check spec-check cover-check ## full acceptance gate; exit 0 == done
+# verify == the DETERMINISTIC gate (build/test/lint/spec/completeness/coverage/DoD). Fast,
+# repeatable, CI-safe, zero LLM/tokens — this is what CI and routine `make` runs use.
+verify: check spec-check spec-completeness cover-check ## deterministic gate; exit 0 == green
 	./scripts/dod-check.sh $(BINARY)
+# judge == the ONE non-deterministic gate (an LLM scores the few subjective DoD items). It
+# needs an agent and spends tokens, so it is NOT part of `verify` — run it only at
+# build-acceptance time, never on a routine CI/dev `make verify`.
+judge: ## LLM-scored subjective gate (build-acceptance only; needs claude/codex)
 	./scripts/judge.sh
-spec-check: ## built CLI surface must match the spec-derived manifest
+# accept == the full build-acceptance gate (deterministic gate + the LLM judge).
+accept: verify judge ## full acceptance (verify + judge); exit 0 == done & high
+spec-check: ## built CLI surface ⊆ the spec-derived manifest (consistency)
 	./scripts/spec-check.sh
+spec-completeness: ## manifest must wrap ≥$(API_COVERAGE_MIN)% of the enumerated full API (completeness)
+	./scripts/spec-completeness.sh api-manifest.json $(API_COVERAGE_MIN)
 
 ## --- docs & release ---
 docs-gen: ; go run ./tools/gendocs
@@ -50,5 +61,5 @@ setup-hooks: ; git config core.hooksPath .githooks && echo "hooks installed"
 clean: ; rm -rf bin dist coverage.out
 
 .PHONY: build install uninstall run dev fmt vet lint tidy test test-race \
-        test-coverage cover-check check verify spec-check docs-gen docs-serve \
-        docs-build snapshot setup-hooks clean
+        test-coverage cover-check check verify judge accept spec-check \
+        spec-completeness docs-gen docs-serve docs-build snapshot setup-hooks clean
