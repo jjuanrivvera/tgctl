@@ -46,3 +46,46 @@ never silently re-decide.
 ## Resource set (derived from the Bot API method surface; see api-manifest.json)
 Grouped by noun; verbs map 1:1 to Bot API methods. Read-only verbs annotated read-only for
 MCP/agent-guard; destructive verbs (delete/leave/ban/unpin) annotated destructive.
+
+## API completeness (cliwright GOAL.md §0/§11)
+The full Bot API method set is **enumerated from a source, not recalled**: the ark0f/tg-bot-api
+community machine spec (`api_method_source` in api-manifest.json) yields **135 methods** (Bot API
+8.3). `scripts/spec-completeness.sh` reads `api_method_total` and fails if the manifest covers
+below its threshold without a recorded waiver.
+
+`tgctl` wraps **109 / 135 methods (80%)**: all messaging, media, chat administration, member
+moderation, forum-topic management, invite links (incl. subscription links), bot configuration,
+Telegram Stars, chat/user verification, webhooks, updates, files, callbacks, and inline queries.
+
+**coverage-waiver: 80% (109/135). The 26 uncovered methods are five genuinely-niche families
+deferred deliberately, not overlooked** — each is a self-contained sub-API most bots never touch:
+- **stickers-set-management (15)** — createNewStickerSet, addStickerToSet, replaceStickerInSet,
+  deleteStickerFromSet, deleteStickerSet, setSticker*, getStickerSet, getCustomEmojiStickers,
+  uploadStickerFile, setCustomEmojiStickerSetThumbnail. A full sticker-authoring workflow.
+- **payments/invoices (4)** — sendInvoice, createInvoiceLink, answerShippingQuery,
+  answerPreCheckoutQuery. Requires a payment-provider token and a checkout callback loop.
+- **games (3)** — sendGame, setGameScore, getGameHighScores. The HTML5 Games platform.
+- **telegram-passport (1)** — setPassportDataErrors. Encrypted identity documents.
+- **business-connection (3)** — getBusinessConnection, answerWebAppQuery,
+  savePreparedInlineMessage. Telegram Business / Web-App-specific.
+
+They stay recorded here (not silently dropped) so the completeness gate sees the decision on
+every pass. Adding any family later is the same declarative pattern (manifest verb → group
+methodCmd → mocked test); the waiver line is removed when coverage clears the threshold.
+
+## v0.2 surface expansion (52 → 109 verbs)
+Added following the generic method-command builder (extend, don't fork):
+- **message** — sendChatAction (`action`), the edit* family (edit-caption/edit-media/
+  edit-reply-markup/edit-live-location/stop-live-location), stopPoll, and the bulk
+  copy/forward/delete-batch methods. edit* targets are `--chat/--message-id` **or**
+  `--inline-message-id`, so those flags are optional (`optChatFlag`/`optMessageIDFlag`).
+- **chat** — admin setters: set/delete-photo, set-permissions, set/delete-sticker-set,
+  get/set-menu-button, unpin-all, and getUserChatBoosts (`boosts`).
+- **member** — setChatAdministratorCustomTitle (`set-title`), approve/decline-join,
+  ban/unban-sender (channel-as-sender bans).
+- **forum** (new) — full topic lifecycle + the General-topic variants.
+- **verify** (new) — verify/unverify chats and users (org-verified bots only).
+- **stars** (new) — Star transactions, gifts, refunds, subscription edit, emoji status,
+  and paid media.
+- **bot** — short-description get/set, default-admin-rights get/set, close, logout.
+- **invite** — exportChatInviteLink and the subscription-invite-link pair.

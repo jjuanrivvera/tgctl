@@ -172,6 +172,123 @@ func init() {
 				},
 				Columns: []string{"message_id", "chat.id", "dice.emoji", "dice.value"},
 			},
+			{
+				Use: "action", Method: "sendChatAction", Kind: kindWrite,
+				Short: "Show a chat action (typing, uploading, …) for a few seconds",
+				Long:  "Tell the user something is happening on the bot's side. The status is cleared when a message arrives or after ~5 seconds.",
+				Example: `  tgctl message action --chat @me --action typing
+  tgctl message action --chat @me --action upload_photo`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "action", Required: true, Usage: "typing | upload_photo | record_video | upload_video | record_voice | upload_voice | upload_document | choose_sticker | find_location | record_video_note | upload_video_note"},
+					threadFlag(),
+					businessFlag(),
+				},
+			},
+			{
+				Use: "edit-caption", Method: "editMessageCaption", Kind: kindWrite,
+				Short:   "Edit the caption of a media message",
+				Example: `  tgctl message edit-caption --chat @me --message-id 42 --caption "updated caption"`,
+				Flags: []flagSpec{
+					optChatFlag(), optMessageIDFlag(), inlineMessageIDFlag(),
+					{Name: "caption", Usage: "new caption (0-1024 chars; omit to clear)"},
+					parseModeFlag(),
+					{Name: "show-caption-above-media", Param: "show_caption_above_media", Kind: flagBool, Usage: "place the caption above the media"},
+					replyMarkupFlag(), businessFlag(),
+				},
+				Columns: []string{"message_id", "chat.id"},
+			},
+			{
+				Use: "edit-media", Method: "editMessageMedia", Kind: kindWrite,
+				Short: "Replace the media of a message",
+				Long:  "Replace a message's photo/video/animation/audio/document. --media is an InputMedia object as JSON.",
+				Example: `  tgctl message edit-media --chat @me --message-id 42 \
+    --media '{"type":"photo","media":"https://e.com/new.jpg"}'`,
+				Flags: []flagSpec{
+					optChatFlag(), optMessageIDFlag(), inlineMessageIDFlag(),
+					{Name: "media", Kind: flagJSON, Required: true, Usage: "InputMedia object as JSON"},
+					replyMarkupFlag(), businessFlag(),
+				},
+				Columns: []string{"message_id", "chat.id"},
+			},
+			{
+				Use: "edit-reply-markup", Method: "editMessageReplyMarkup", Kind: kindWrite,
+				Short:   "Edit only the inline keyboard of a message",
+				Example: `  tgctl message edit-reply-markup --chat @me --message-id 42 --reply-markup '{"inline_keyboard":[]}'`,
+				Flags: []flagSpec{
+					optChatFlag(), optMessageIDFlag(), inlineMessageIDFlag(),
+					replyMarkupFlag(), businessFlag(),
+				},
+				Columns: []string{"message_id", "chat.id"},
+			},
+			{
+				Use: "edit-live-location", Method: "editMessageLiveLocation", Kind: kindWrite,
+				Short:   "Update a live location message",
+				Example: `  tgctl message edit-live-location --chat @me --message-id 42 --latitude 3.46 --longitude -76.53`,
+				Flags: []flagSpec{
+					optChatFlag(), optMessageIDFlag(), inlineMessageIDFlag(),
+					{Name: "latitude", Kind: flagFloat, Required: true, Usage: "new latitude"},
+					{Name: "longitude", Kind: flagFloat, Required: true, Usage: "new longitude"},
+					{Name: "live-period", Param: "live_period", Kind: flagInt, Usage: "new live period in seconds"},
+					{Name: "horizontal-accuracy", Param: "horizontal_accuracy", Kind: flagFloat, Usage: "location uncertainty radius in meters (0-1500)"},
+					{Name: "heading", Kind: flagInt, Usage: "direction of movement in degrees (1-360)"},
+					{Name: "proximity-alert-radius", Param: "proximity_alert_radius", Kind: flagInt, Usage: "max distance for proximity alerts in meters"},
+					replyMarkupFlag(), businessFlag(),
+				},
+				Columns: []string{"message_id", "chat.id"},
+			},
+			{
+				Use: "stop-live-location", Method: "stopMessageLiveLocation", Kind: kindWrite,
+				Short:   "Stop updating a live location before its period expires",
+				Example: `  tgctl message stop-live-location --chat @me --message-id 42`,
+				Flags: []flagSpec{
+					optChatFlag(), optMessageIDFlag(), inlineMessageIDFlag(),
+					replyMarkupFlag(), businessFlag(),
+				},
+				Columns: []string{"message_id", "chat.id"},
+			},
+			{
+				Use: "stop-poll", Method: "stopPoll", Kind: kindWrite,
+				Short:   "Stop a poll and return its final results",
+				Example: `  tgctl message stop-poll --chat @group --message-id 42`,
+				Flags: []flagSpec{
+					chatFlag(), messageIDFlag(),
+					replyMarkupFlag(), businessFlag(),
+				},
+				Columns: []string{"id", "question", "total_voter_count", "is_closed"},
+			},
+			{
+				Use: "copy-batch", Aliases: []string{"copy-many"}, Method: "copyMessages", Kind: kindWrite,
+				Short:   "Copy multiple messages at once (no 'forwarded from' header)",
+				Example: `  tgctl message copy-batch --chat @dest --from-chat @src --message-ids '[10,11,12]'`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "from-chat", Param: "from_chat_id", Required: true, Usage: "source chat id or @username"},
+					{Name: "message-ids", Param: "message_ids", Kind: flagJSON, Required: true, Usage: "JSON array of message ids, e.g. [10,11,12]"},
+					threadFlag(), silentFlag(), protectContentFlag(),
+					{Name: "remove-caption", Param: "remove_caption", Kind: flagBool, Usage: "drop captions of the copied messages"},
+				},
+			},
+			{
+				Use: "forward-batch", Aliases: []string{"forward-many"}, Method: "forwardMessages", Kind: kindWrite,
+				Short:   "Forward multiple messages at once",
+				Example: `  tgctl message forward-batch --chat @dest --from-chat @src --message-ids '[10,11,12]'`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "from-chat", Param: "from_chat_id", Required: true, Usage: "source chat id or @username"},
+					{Name: "message-ids", Param: "message_ids", Kind: flagJSON, Required: true, Usage: "JSON array of message ids, e.g. [10,11,12]"},
+					threadFlag(), silentFlag(), protectContentFlag(),
+				},
+			},
+			{
+				Use: "delete-batch", Aliases: []string{"delete-many"}, Method: "deleteMessages", Kind: kindDestructive,
+				Short:   "Delete multiple messages at once",
+				Example: `  tgctl message delete-batch --chat @group --message-ids '[10,11,12]'`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "message-ids", Param: "message_ids", Kind: flagJSON, Required: true, Usage: "JSON array of message ids, e.g. [10,11,12]"},
+				},
+			},
 		},
 	})
 }
@@ -181,8 +298,35 @@ func chatFlag() flagSpec {
 	return flagSpec{Name: "chat", Param: "chat_id", Required: true, Usage: "target chat: numeric id or @username"}
 }
 
+// optChatFlag is chatFlag without Required — for edit* methods where the target is either
+// --chat/--message-id (a chat message) or --inline-message-id (an inline message).
+func optChatFlag() flagSpec {
+	return flagSpec{Name: "chat", Param: "chat_id", Usage: "target chat: numeric id or @username (with --message-id)"}
+}
+
 func messageIDFlag() flagSpec {
 	return flagSpec{Name: "message-id", Param: "message_id", Kind: flagInt, Required: true, Usage: "message id"}
+}
+
+// optMessageIDFlag is messageIDFlag without Required (see optChatFlag).
+func optMessageIDFlag() flagSpec {
+	return flagSpec{Name: "message-id", Param: "message_id", Kind: flagInt, Usage: "message id (with --chat)"}
+}
+
+func inlineMessageIDFlag() flagSpec {
+	return flagSpec{Name: "inline-message-id", Param: "inline_message_id", Usage: "inline message id (instead of --chat/--message-id)"}
+}
+
+func threadFlag() flagSpec {
+	return flagSpec{Name: "thread", Param: "message_thread_id", Kind: flagInt, Usage: "forum topic thread id"}
+}
+
+func protectContentFlag() flagSpec {
+	return flagSpec{Name: "protect-content", Param: "protect_content", Kind: flagBool, Usage: "protect the content from forwarding and saving"}
+}
+
+func businessFlag() flagSpec {
+	return flagSpec{Name: "business-connection-id", Param: "business_connection_id", Usage: "business connection id on whose behalf to act"}
 }
 
 func parseModeFlag() flagSpec {

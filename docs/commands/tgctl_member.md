@@ -31,8 +31,13 @@ Administrative actions on members. The bot must be an admin with the relevant ri
 ### SEE ALSO
 
 * [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
+* [tgctl member approve-join](tgctl_member_approve-join.md)	 - Approve a chat join request
 * [tgctl member ban](tgctl_member_ban.md)	 - Ban a user from a chat
+* [tgctl member ban-sender](tgctl_member_ban-sender.md)	 - Ban a channel from posting as itself in a chat
+* [tgctl member decline-join](tgctl_member_decline-join.md)	 - Decline a chat join request
 * [tgctl member promote](tgctl_member_promote.md)	 - Promote or demote an administrator
 * [tgctl member restrict](tgctl_member_restrict.md)	 - Restrict what a member can do
+* [tgctl member set-title](tgctl_member_set-title.md)	 - Set a custom title for an administrator the bot promoted
 * [tgctl member unban](tgctl_member_unban.md)	 - Unban a previously banned user
+* [tgctl member unban-sender](tgctl_member_unban-sender.md)	 - Unban a channel that was banned as a sender
 

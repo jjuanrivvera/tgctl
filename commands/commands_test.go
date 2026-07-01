@@ -2,6 +2,7 @@ package commands
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -89,7 +90,7 @@ func TestDryRun_NoRequest(t *testing.T) {
 func TestMediaPhoto_Upload(t *testing.T) {
 	srv := newServer(t, routes{"sendPhoto": `{"message_id":9,"chat":{"id":7}}`})
 	dir := t.TempDir()
-	pic := dir + "/p.jpg"
+	pic := filepath.Join(dir, "p.jpg")
 	require.NoError(t, os.WriteFile(pic, []byte("JPEG"), 0o600))
 	out, _, err := run(t, srv, "media", "photo", "--chat", "@me", "--photo", pic)
 	require.NoError(t, err)

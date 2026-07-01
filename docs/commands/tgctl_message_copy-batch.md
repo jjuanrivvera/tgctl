@@ -1,0 +1,47 @@
+## tgctl message copy-batch
+
+Copy multiple messages at once (no 'forwarded from' header)
+
+```
+tgctl message copy-batch [flags]
+```
+
+### Examples
+
+```
+  tgctl message copy-batch --chat @dest --from-chat @src --message-ids '[10,11,12]'
+```
+
+### Options
+
+```
+      --chat string          target chat: numeric id or @username
+      --from-chat string     source chat id or @username
+  -h, --help                 help for copy-batch
+      --message-ids string   JSON array of message ids, e.g. [10,11,12]
+      --protect-content      protect the content from forwarding and saving
+      --remove-caption       drop captions of the copied messages
+      --silent               send without a notification sound
+      --thread int           forum topic thread id
+```
+
+### Options inherited from parent commands
+
+```
+      --base-url string   Bot API base URL (default https://api.telegram.org)
+      --bot string        bot to use: a named profile/credential (env TGCTL_BOT)
+      --columns strings   explicit, ordered table/csv columns
+      --dry-run           print the equivalent curl and make no request
+      --jq string         gojq expression applied to the result before rendering
+      --no-color          disable colored output
+  -o, --output string     output format: table|json|yaml|csv|id (default "table")
+      --quiet             suppress notes on stderr
+      --rps float         client-side requests-per-second cap (0 = default)
+      --show-token        do not redact the bot token in --dry-run output
+  -v, --verbose           log raw API responses to stderr
+```
+
+### SEE ALSO
+
+* [tgctl message](tgctl_message.md)	 - Send and manage messages
+

@@ -41,6 +41,35 @@ func init() {
 				Flags:   []flagSpec{chatFlag(), inviteLinkFlag()},
 				Columns: []string{"invite_link", "is_revoked"},
 			},
+			{
+				Use: "export", Method: "exportChatInviteLink", Kind: kindDestructive,
+				Short:   "Generate a new primary invite link (revoking the previous one)",
+				Long:    "Replace the chat's primary invite link with a new one. The previous primary link is revoked. Returns the new link.",
+				Example: `  tgctl invite export --chat @group`,
+				Flags:   []flagSpec{chatFlag()},
+			},
+			{
+				Use: "create-subscription", Method: "createChatSubscriptionInviteLink", Kind: kindWrite,
+				Short:   "Create a subscription invite link (paid recurring access in Stars)",
+				Example: `  tgctl invite create-subscription --chat @channel --subscription-period 2592000 --subscription-price 100`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "name", Usage: "invite link name (0-32 chars)"},
+					{Name: "subscription-period", Param: "subscription_period", Kind: flagInt, Required: true, Usage: "subscription period in seconds (currently must be 2592000 = 30 days)"},
+					{Name: "subscription-price", Param: "subscription_price", Kind: flagInt, Required: true, Usage: "price in Telegram Stars per period (1-2500)"},
+				},
+				Columns: []string{"invite_link", "name", "subscription_period"},
+			},
+			{
+				Use: "edit-subscription", Method: "editChatSubscriptionInviteLink", Kind: kindWrite,
+				Short:   "Edit the name of a subscription invite link",
+				Example: `  tgctl invite edit-subscription --chat @channel --invite-link https://t.me/+abc --name "VIP"`,
+				Flags: []flagSpec{
+					chatFlag(), inviteLinkFlag(),
+					{Name: "name", Usage: "invite link name (0-32 chars)"},
+				},
+				Columns: []string{"invite_link", "name"},
+			},
 		},
 	})
 }

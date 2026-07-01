@@ -6,6 +6,12 @@ Set the bot's description (shown in the empty chat)
 tgctl bot set-description [flags]
 ```
 
+### Examples
+
+```
+  tgctl bot set-description --description "I help you manage your groups."
+```
+
 ### Options
 
 ```

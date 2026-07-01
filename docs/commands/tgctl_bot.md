@@ -31,9 +31,15 @@ Read the bot's identity (getMe) and manage its name/description shown in Telegra
 ### SEE ALSO
 
 * [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
+* [tgctl bot close](tgctl_bot_close.md)	 - Close the bot instance before moving it to another server
+* [tgctl bot get-admin-rights](tgctl_bot_get-admin-rights.md)	 - Get the bot's default administrator rights
 * [tgctl bot get-description](tgctl_bot_get-description.md)	 - Get the bot's description
 * [tgctl bot get-name](tgctl_bot_get-name.md)	 - Get the bot's name
+* [tgctl bot get-short-description](tgctl_bot_get-short-description.md)	 - Get the bot's short description
 * [tgctl bot info](tgctl_bot_info.md)	 - Show the authenticated bot's identity (getMe)
+* [tgctl bot logout](tgctl_bot_logout.md)	 - Log out from the cloud Bot API before running a local Bot API server
+* [tgctl bot set-admin-rights](tgctl_bot_set-admin-rights.md)	 - Set the bot's default administrator rights (requested when added to a group/channel)
 * [tgctl bot set-description](tgctl_bot_set-description.md)	 - Set the bot's description (shown in the empty chat)
 * [tgctl bot set-name](tgctl_bot_set-name.md)	 - Set the bot's name
+* [tgctl bot set-short-description](tgctl_bot_set-short-description.md)	 - Set the bot's short description (shown on the profile page)
 

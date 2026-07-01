@@ -6,6 +6,13 @@ Get the bot's name
 tgctl bot get-name [flags]
 ```
 
+### Examples
+
+```
+  tgctl bot get-name
+  tgctl bot get-name --language-code es
+```
+
 ### Options
 
 ```

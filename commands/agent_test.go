@@ -3,6 +3,7 @@ package commands
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/njayp/ophis"
@@ -123,7 +124,7 @@ func TestAgentGuard_UnknownHost(t *testing.T) {
 
 func TestAgentGuard_WriteToFile(t *testing.T) {
 	dir := t.TempDir()
-	path := dir + "/settings.json"
+	path := filepath.Join(dir, "settings.json")
 	_, _, err := run(t, nil, "agent", "guard", "--host", "claude-code", "--out", path)
 	require.NoError(t, err)
 	data, rerr := os.ReadFile(path)

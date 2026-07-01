@@ -50,6 +50,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl config](tgctl_config.md)	 - Inspect and edit tgctl configuration
 * [tgctl doctor](tgctl_doctor.md)	 - Diagnose configuration, credentials, and connectivity
 * [tgctl file](tgctl_file.md)	 - Inspect and download files
+* [tgctl forum](tgctl_forum.md)	 - Manage forum topics in supergroups
 * [tgctl init](tgctl_init.md)	 - First-run wizard: pick a base URL, capture a token, and smoke-test
 * [tgctl inline](tgctl_inline.md)	 - Answer inline queries
 * [tgctl invite](tgctl_invite.md)	 - Manage chat invite links
@@ -57,8 +58,10 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl media](tgctl_media.md)	 - Send files: photos, documents, and video
 * [tgctl member](tgctl_member.md)	 - Moderate chat members (ban, restrict, promote)
 * [tgctl message](tgctl_message.md)	 - Send and manage messages
+* [tgctl stars](tgctl_stars.md)	 - Telegram Stars: transactions, gifts, and paid media
 * [tgctl updates](tgctl_updates.md)	 - Fetch incoming updates (long polling)
 * [tgctl user](tgctl_user.md)	 - Read user information
+* [tgctl verify](tgctl_verify.md)	 - Verify or unverify chats and users
 * [tgctl version](tgctl_version.md)	 - Print version, commit, and build date
 * [tgctl webhook](tgctl_webhook.md)	 - Manage the bot's webhook
 

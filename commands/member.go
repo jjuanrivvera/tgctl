@@ -52,6 +52,45 @@ func init() {
 					{Name: "can-pin-messages", Param: "can_pin_messages", Kind: flagBool, Usage: "can pin messages"},
 				},
 			},
+			{
+				Use: "set-title", Method: "setChatAdministratorCustomTitle", Kind: kindWrite,
+				Short:   "Set a custom title for an administrator the bot promoted",
+				Example: `  tgctl member set-title --chat @group --user 12345 --title "Community Lead"`,
+				Flags: []flagSpec{
+					chatFlag(), userFlag(),
+					{Name: "title", Param: "custom_title", Required: true, Usage: "custom admin title (0-16 chars, no emoji)"},
+				},
+			},
+			{
+				Use: "approve-join", Method: "approveChatJoinRequest", Kind: kindWrite,
+				Short:   "Approve a chat join request",
+				Example: `  tgctl member approve-join --chat @group --user 12345`,
+				Flags:   []flagSpec{chatFlag(), userFlag()},
+			},
+			{
+				Use: "decline-join", Method: "declineChatJoinRequest", Kind: kindWrite,
+				Short:   "Decline a chat join request",
+				Example: `  tgctl member decline-join --chat @group --user 12345`,
+				Flags:   []flagSpec{chatFlag(), userFlag()},
+			},
+			{
+				Use: "ban-sender", Method: "banChatSenderChat", Kind: kindDestructive,
+				Short:   "Ban a channel from posting as itself in a chat",
+				Example: `  tgctl member ban-sender --chat @group --sender-chat -1001234567890`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "sender-chat", Param: "sender_chat_id", Kind: flagInt, Required: true, Usage: "id of the channel/chat to ban as a sender"},
+				},
+			},
+			{
+				Use: "unban-sender", Method: "unbanChatSenderChat", Kind: kindWrite,
+				Short:   "Unban a channel that was banned as a sender",
+				Example: `  tgctl member unban-sender --chat @group --sender-chat -1001234567890`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "sender-chat", Param: "sender_chat_id", Kind: flagInt, Required: true, Usage: "id of the channel/chat to unban"},
+				},
+			},
 		},
 	})
 }

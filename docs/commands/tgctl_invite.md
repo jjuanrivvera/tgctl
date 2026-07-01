@@ -32,6 +32,9 @@ Create, edit, and revoke additional invite links for a chat (the bot must be an 
 
 * [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
 * [tgctl invite create](tgctl_invite_create.md)	 - Create a new invite link
+* [tgctl invite create-subscription](tgctl_invite_create-subscription.md)	 - Create a subscription invite link (paid recurring access in Stars)
 * [tgctl invite edit](tgctl_invite_edit.md)	 - Edit an existing invite link
+* [tgctl invite edit-subscription](tgctl_invite_edit-subscription.md)	 - Edit the name of a subscription invite link
+* [tgctl invite export](tgctl_invite_export.md)	 - Generate a new primary invite link (revoking the previous one)
 * [tgctl invite revoke](tgctl_invite_revoke.md)	 - Revoke an invite link (a new one is generated automatically)
 

@@ -6,6 +6,13 @@ Get the bot's description
 tgctl bot get-description [flags]
 ```
 
+### Examples
+
+```
+  tgctl bot get-description
+  tgctl bot get-description --language-code es
+```
+
 ### Options
 
 ```
