@@ -34,7 +34,9 @@ func init() {
 				},
 			},
 			{
-				Use: "refund", Method: "refundStarPayment", Kind: kindWrite,
+				// Destructive: a refund is an irreversible money movement — the payment
+				// cannot be re-charged once returned.
+				Use: "refund", Method: "refundStarPayment", Kind: kindDestructive,
 				Short:   "Refund a successful Star payment",
 				Example: `  tgctl stars refund --user 12345 --charge-id abc123`,
 				Flags: []flagSpec{

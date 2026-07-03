@@ -47,7 +47,8 @@ func init() {
 				Flags:   []flagSpec{chatFlag(), threadReqFlag()},
 			},
 			{
-				Use: "unpin-all", Method: "unpinAllForumTopicMessages", Kind: kindWrite,
+				// Destructive: bulk-unpin whose previous pin set cannot be recovered.
+				Use: "unpin-all", Method: "unpinAllForumTopicMessages", Kind: kindDestructive,
 				Short:   "Unpin all messages in a forum topic",
 				Example: `  tgctl forum unpin-all --chat @group --thread 42`,
 				Flags:   []flagSpec{chatFlag(), threadReqFlag()},
@@ -92,7 +93,8 @@ func init() {
 				Flags:   []flagSpec{chatFlag()},
 			},
 			{
-				Use: "unpin-all-general", Method: "unpinAllGeneralForumTopicMessages", Kind: kindWrite,
+				// Destructive: bulk-unpin whose previous pin set cannot be recovered.
+				Use: "unpin-all-general", Method: "unpinAllGeneralForumTopicMessages", Kind: kindDestructive,
 				Short:   "Unpin all messages in the General forum topic",
 				Example: `  tgctl forum unpin-all-general --chat @group`,
 				Flags:   []flagSpec{chatFlag()},
