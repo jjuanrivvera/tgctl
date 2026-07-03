@@ -6,7 +6,16 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-02
+
 ### Added
+- **`agent guard` now generates a PreToolUse enforcement hook** (Bash + MCP
+  matchers) instead of only permission rules. It anchors blocked subcommands at
+  the command position, matches path-invoked binaries (`./bin/tgctl`,
+  `/usr/local/bin/tgctl`) while ignoring a different binary that merely ends in
+  `tgctl`, emits every cobra-alias spelling (`msg delete`, `delete-many`,
+  `cmds delete`), and — because the `api` escape is RPC-style and Telegram
+  method names are case-insensitive — allows only `get*` at the method position.
 - Expanded Bot API coverage with new verbs:
   - Media sends: `media audio`, `media voice`, `media animation`, `media video-note`,
     `media sticker`, `media media-group`.
@@ -20,6 +29,13 @@ All notable changes to this project are documented here. The format is based on
 ### Changed
 - The multi-bot selection flag is now `--bot` (a profile is one bot). `--profile` remains as a
   hidden, still-working alias, and `$TGCTL_BOT` is recognized ahead of the legacy `$TGCTL_PROFILE`.
+- `agent guard` promotes `stars refund` and the bulk `unpin-all*` commands to the
+  hard-block (irreversible) bucket, matching the guard's contract.
+
+### Fixed
+- `agent guard` closes hook bypasses that permission rules alone could not: no
+  enforcement hook was generated before, and separators glued to a no-arg verb
+  and a no-jq fallback that could fail open are now handled.
 
 ## [0.1.0] - 2026-06-29
 
