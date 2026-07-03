@@ -54,11 +54,24 @@ func init() {
 			Use:   "guard --host <claude-code|codex|opencode>",
 			Short: "Generate agent-safety config that blocks destructive tgctl operations",
 			Long: `Classify every API command (read / write / irreversible) from the live command
-tree and emit host safety config: irreversible verbs (delete, leave, ban, webhook delete)
-are hard-blocked, ordinary writes require approval, and reads are allowed.
+tree and emit host safety config: irreversible operations (delete, leave, ban, revoke,
+logout, refund, unpin-all, webhook delete) are hard-blocked, ordinary writes require
+approval, and reads are allowed. Cobra alias paths are covered too — "tgctl msg delete"
+and "tgctl message delete-many" hit the same rails as "tgctl message delete".
 
-MCP-only operation is the hard guarantee; the Bash patterns are best-effort (they defeat
-quoting tricks, not variable indirection).`,
+For claude-code the output also includes a PreToolUse hook script
+(.claude/hooks/tgctl-guard.sh): it strips quote/backslash obfuscation, matches blocked
+subcommand paths at the command position even for path-invoked binaries (./bin/tgctl,
+/usr/local/bin/tgctl), and gates the raw "tgctl api <method>" escape hatch — only
+read-only get* methods pass, since Bot API method names are case-insensitive
+server-side. "tgctl alias set" is denied so an agent cannot mint a new shorthand for a
+blocked command.
+
+MCP-only operation is the hard guarantee; the Bash rails are best-effort — the hook
+defeats quoting tricks and path prefixes, but not variable indirection
+(a=delete; tgctl message $a) or shell aliases. Conservative false positives are
+accepted: a line that merely QUOTES a blocked command (echo "tgctl message delete")
+is denied.`,
 			Example: `  tgctl agent guard --host claude-code
   tgctl agent guard --host codex --out ~/.codex/config.toml
   tgctl agent guard --host opencode --all-writes`,

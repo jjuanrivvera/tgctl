@@ -108,9 +108,15 @@ type group struct {
 
 // apiCmdInfo records a built API command for the MCP server and agent guard to classify.
 type apiCmdInfo struct {
-	Path   string // e.g. "message send"
+	Path   string // canonical CLI path, e.g. "message send"
 	Method string
 	Kind   cmdKind
+	// aliasPaths are the alternate CLI paths reachable through cobra aliases —
+	// every group-alias × verb-alias combination except the canonical path
+	// (e.g. "msg delete", "message delete-many", "msg delete-many"). The agent
+	// guard must block these too, or an alias invocation silently bypasses the
+	// deny rules that only name the canonical path.
+	aliasPaths []string
 }
 
 var registeredAPICmds []apiCmdInfo
@@ -123,13 +129,31 @@ func (a apiCmdInfo) PathString() string  { return a.Path }
 func (a apiCmdInfo) IsRead() bool        { return a.Kind == kindRead }
 func (a apiCmdInfo) IsDestructive() bool { return a.Kind == kindDestructive }
 
+// AllPaths returns every CLI path that invokes this command: the canonical path
+// plus all cobra alias combinations.
+func (a apiCmdInfo) AllPaths() []string {
+	return append([]string{a.Path}, a.aliasPaths...)
+}
+
 // registerGroup adds a group's commands to the root tree and the classification registry.
 func registerGroup(g group) {
+	groupNames := append([]string{g.Use}, g.Aliases...)
 	for _, mc := range g.Cmds {
+		verbNames := append([]string{mc.Use}, mc.Aliases...)
+		var aliasPaths []string
+		for _, gn := range groupNames {
+			for _, vn := range verbNames {
+				if gn == g.Use && vn == mc.Use {
+					continue // the canonical path lives in Path
+				}
+				aliasPaths = append(aliasPaths, gn+" "+vn)
+			}
+		}
 		registeredAPICmds = append(registeredAPICmds, apiCmdInfo{
-			Path:   g.Use + " " + mc.Use,
-			Method: mc.Method,
-			Kind:   mc.Kind,
+			Path:       g.Use + " " + mc.Use,
+			Method:     mc.Method,
+			Kind:       mc.Kind,
+			aliasPaths: aliasPaths,
 		})
 	}
 	register(func(root *cobra.Command) {

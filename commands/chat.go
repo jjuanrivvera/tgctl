@@ -116,7 +116,9 @@ func init() {
 				},
 			},
 			{
-				Use: "unpin-all", Method: "unpinAllChatMessages", Kind: kindWrite,
+				// Destructive: unpins EVERY pinned message in one shot and the previous
+				// pin set cannot be recovered (DECISIONS.md lists unpin as destructive).
+				Use: "unpin-all", Method: "unpinAllChatMessages", Kind: kindDestructive,
 				Short:   "Unpin every pinned message in a chat",
 				Example: `  tgctl chat unpin-all --chat @group`,
 				Flags:   []flagSpec{chatFlag()},
