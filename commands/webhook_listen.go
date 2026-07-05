@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/jjuanrivvera/tgctl/internal/store"
 )
 
 // webhookListenCmd runs a local HTTP server that receives Telegram webhook updates and prints
@@ -72,8 +74,16 @@ stops the server (and deletes the webhook if --delete-on-exit).`,
 				}
 			}
 
+			// Best-effort, opened once for the life of the server (not per-request): a nil
+			// store (disabled via --no-store, or unavailable) simply means inbound updates
+			// aren't recorded, exactly like the read failure path elsewhere (DECISIONS.md).
+			st := openStoreForWrite(cmd)
+			if st != nil {
+				defer func() { _ = st.Close() }()
+			}
+
 			mux := http.NewServeMux()
-			mux.HandleFunc(routePath(path), webhookUpdateHandler(cmd, secret))
+			mux.HandleFunc(routePath(path), webhookUpdateHandler(cmd, secret, st))
 			srv := &http.Server{
 				Addr:              fmt.Sprintf(":%d", port),
 				Handler:           mux,
@@ -116,8 +126,10 @@ func routePath(p string) string {
 
 // webhookUpdateHandler returns the HTTP handler that validates and renders one update. Writes
 // to stdout are serialized so concurrent deliveries don't interleave. It acknowledges Telegram
-// with 200 immediately on a valid request, then renders.
-func webhookUpdateHandler(cmd *cobra.Command, secret string) http.HandlerFunc {
+// with 200 immediately on a valid request, then renders. When st is non-nil, an incoming
+// message is also recorded (direction 'in') to the local store — the webhook counterpart to
+// commands/updates.go's recordInboundUpdates.
+func webhookUpdateHandler(cmd *cobra.Command, secret string, st *store.Store) http.HandlerFunc {
 	var mu sync.Mutex
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -145,6 +157,14 @@ func webhookUpdateHandler(cmd *cobra.Command, secret string) http.HandlerFunc {
 
 		mu.Lock()
 		defer mu.Unlock()
+		if st != nil {
+			var update struct {
+				Message *telegramMessage `json:"message"`
+			}
+			if err := json.Unmarshal(body, &update); err == nil && update.Message != nil {
+				recordInboundMessage(cmd, st, update.Message)
+			}
+		}
 		if err := render(cmd, json.RawMessage(body)); err != nil {
 			fmt.Fprintf(cmd.ErrOrStderr(), "render error: %v\n", err)
 		}

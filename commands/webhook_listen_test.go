@@ -32,7 +32,7 @@ func renderCmd(out *bytes.Buffer) *cobra.Command {
 
 func TestWebhookUpdateHandler(t *testing.T) {
 	var out bytes.Buffer
-	h := webhookUpdateHandler(renderCmd(&out), "s3cr3t")
+	h := webhookUpdateHandler(renderCmd(&out), "s3cr3t", nil)
 
 	post := func(secret, body string) *httptest.ResponseRecorder {
 		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
@@ -142,6 +142,59 @@ func TestWebhookListen_Lifecycle(t *testing.T) {
 	assert.True(t, setCalled, "setWebhook should have been called for --set-url")
 	assert.True(t, delCalled, "deleteWebhook should have been called for --delete-on-exit")
 	assert.Contains(t, out.String(), `"update_id": 5`)
+}
+
+// TestWebhookListen_RecordsInbound drives the real `webhook listen` command end to end and
+// verifies a delivered update lands in the local store with direction='in' — the webhook
+// counterpart to TestUpdatesGet_RecordsInbound (commands/log_test.go).
+func TestWebhookListen_RecordsInbound(t *testing.T) {
+	keyring.MockInit()
+	t.Setenv("TGCTL_TOKEN", "123456:TESTHASH")
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("NO_COLOR", "1")
+
+	port := freePort(t)
+	root := NewRootCmd()
+	var out, errb bytes.Buffer
+	root.SetOut(&out)
+	root.SetErr(&errb)
+	root.SetArgs([]string{
+		"webhook", "listen",
+		"--port", strconv.Itoa(port),
+		"-o", "json",
+	})
+
+	ctx, cancel := context.WithCancel(t.Context())
+	done := make(chan error, 1)
+	go func() { done <- root.ExecuteContext(ctx) }()
+
+	base := "http://127.0.0.1:" + strconv.Itoa(port)
+	require.Eventually(t, func() bool {
+		resp, err := http.Get(base) //nolint:noctx // simple readiness poll
+		if err != nil {
+			return false
+		}
+		_ = resp.Body.Close()
+		return true
+	}, 3*time.Second, 20*time.Millisecond)
+
+	req, _ := http.NewRequestWithContext(t.Context(), http.MethodPost, base,
+		strings.NewReader(`{"update_id":9,"message":{"message_id":3,"chat":{"id":555},"text":"webhook hello"}}`))
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	_ = resp.Body.Close()
+
+	cancel()
+	require.NoError(t, <-done)
+
+	// Same process, same XDG_CONFIG_HOME/profile: `log` reads the store the listener just wrote.
+	logRoot := NewRootCmd()
+	var logOut bytes.Buffer
+	logRoot.SetOut(&logOut)
+	logRoot.SetArgs([]string{"log", "--chat", "555", "-o", "json"})
+	require.NoError(t, logRoot.ExecuteContext(t.Context()))
+	mustContain(t, logOut.String(), "webhook hello")
+	mustContain(t, logOut.String(), `"direction": "in"`)
 }
 
 func TestWebhookListenExcludedFromMCP(t *testing.T) {
