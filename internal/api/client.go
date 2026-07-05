@@ -28,6 +28,8 @@ type Client struct {
 
 	dryRunW  io.Writer // where the --dry-run curl line is written (default os.Stderr)
 	verboseW io.Writer
+
+	recorder Recorder // optional observer of successful calls (issue #5); nil = no-op
 }
 
 // Option configures a Client.
@@ -69,6 +71,12 @@ func WithShowToken(v bool) Option          { return func(c *Client) { c.ShowToke
 func WithVerbose(v bool) Option            { return func(c *Client) { c.Verbose = v } }
 func WithDryRunWriter(w io.Writer) Option  { return func(c *Client) { c.dryRunW = w } }
 
+// WithRecorder attaches an observer notified after every successful, non-dry-run Call/Upload
+// (issue #5's local message-history hook). internal/api stays generic — it knows nothing about
+// SQLite or message stores — by depending only on this narrow interface; internal/store (via
+// commands, which wires the two together) provides the implementation.
+func WithRecorder(r Recorder) Option { return func(c *Client) { c.recorder = r } }
+
 // BaseURL returns the configured base URL.
 func (c *Client) BaseURL() string { return c.baseURL }
 
@@ -96,7 +104,9 @@ func (c *Client) Call(ctx context.Context, method string, params map[string]any,
 		idempotent:  idempotent,
 		curlData:    curlJSONArg(params),
 	}
-	return c.do(ctx, req)
+	result, err := c.do(ctx, req)
+	c.maybeRecord(ctx, method, params, result, err)
+	return result, err
 }
 
 // CallInto is Call plus a JSON decode of the result into out.
@@ -150,7 +160,20 @@ func (c *Client) Upload(ctx context.Context, method string, params map[string]an
 		idempotent:  idempotent,
 		curlData:    strings.Join(append(curlFields(params), curlParts...), " "),
 	}
-	return c.do(ctx, req)
+	result, err := c.do(ctx, req)
+	c.maybeRecord(ctx, method, params, result, err)
+	return result, err
+}
+
+// maybeRecord notifies the attached Recorder after a successful, non-dry-run call. It is a
+// pure observer: a nil recorder, a dry-run, or a failed call are all silent no-ops. The
+// Recorder implementation owns filtering to message-bearing methods and swallowing its own
+// errors — a broken message store must never fail a send (DECISIONS.md).
+func (c *Client) maybeRecord(ctx context.Context, method string, params map[string]any, result json.RawMessage, err error) {
+	if c.recorder == nil || err != nil || c.DryRun {
+		return
+	}
+	c.recorder.Record(ctx, method, params, result)
 }
 
 // DownloadFile streams a Bot API file — identified by the file_path getFile returns — to w,
