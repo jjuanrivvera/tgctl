@@ -1,23 +1,32 @@
-## tgctl forum edit-general
+## tgctl log search
 
-Rename the General forum topic
+Full-text search recorded message/caption text
+
+### Synopsis
+
+Search uses FTS5 MATCH when the linked SQLite build supports it (operators: AND/OR/
+NOT, prefix*, "phrases"); otherwise it degrades to a plain substring scan automatically — check
+"tgctl doctor" or the store's FTSEnabled to see which mode is active.
 
 ```
-tgctl forum edit-general [flags]
+tgctl log search <query> [flags]
 ```
 
 ### Examples
 
 ```
-  tgctl forum edit-general --chat @group --name "General chat"
+  tgctl log search "deploy failed"
+  tgctl log search "deploy* AND staging" --chat 123456789
 ```
 
 ### Options
 
 ```
-      --chat string   target chat: numeric id or @username
-  -h, --help          help for edit-general
-      --name string   new name for the General topic (1-128 chars)
+      --chat int       filter by chat id
+  -h, --help           help for search
+      --kind string    filter by kind: text|photo|document|voice|edit|...
+      --limit int      max rows to return (default 50)
+      --since string   only messages at/after this time: a Go duration (24h) or RFC3339/YYYY-MM-DD
 ```
 
 ### Options inherited from parent commands
@@ -39,5 +48,5 @@ tgctl forum edit-general [flags]
 
 ### SEE ALSO
 
-* [tgctl forum](tgctl_forum.md)	 - Manage forum topics in supergroups
+* [tgctl log](tgctl_log.md)	 - Query tgctl's local send/receive history
 

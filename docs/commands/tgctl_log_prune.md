@@ -1,23 +1,23 @@
-## tgctl forum edit-general
+## tgctl log prune
 
-Rename the General forum topic
+Delete recorded messages older than a duration
 
 ```
-tgctl forum edit-general [flags]
+tgctl log prune [flags]
 ```
 
 ### Examples
 
 ```
-  tgctl forum edit-general --chat @group --name "General chat"
+  tgctl log prune --older-than 2160h   # 90 days
+  tgctl log prune --older-than 720h    # 30 days
 ```
 
 ### Options
 
 ```
-      --chat string   target chat: numeric id or @username
-  -h, --help          help for edit-general
-      --name string   new name for the General topic (1-128 chars)
+  -h, --help                help for prune
+      --older-than string   delete messages recorded before now minus this Go duration (required)
 ```
 
 ### Options inherited from parent commands
@@ -39,5 +39,5 @@ tgctl forum edit-general [flags]
 
 ### SEE ALSO
 
-* [tgctl forum](tgctl_forum.md)	 - Manage forum topics in supergroups
+* [tgctl log](tgctl_log.md)	 - Query tgctl's local send/receive history
 

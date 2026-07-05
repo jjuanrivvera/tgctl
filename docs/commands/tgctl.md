@@ -29,6 +29,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
   -h, --help              help for tgctl
       --jq string         gojq expression applied to the result before rendering
       --no-color          disable colored output
+      --no-store          disable local SQLite send/receive history for this invocation (see tgctl log)
   -o, --output string     output format: table|json|yaml|csv|id (default "table")
       --quiet             suppress notes on stderr
       --rps float         client-side requests-per-second cap (0 = default)
@@ -54,6 +55,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl init](tgctl_init.md)	 - First-run wizard: pick a base URL, capture a token, and smoke-test
 * [tgctl inline](tgctl_inline.md)	 - Answer inline queries
 * [tgctl invite](tgctl_invite.md)	 - Manage chat invite links
+* [tgctl log](tgctl_log.md)	 - Query tgctl's local send/receive history
 * [tgctl mcp](tgctl_mcp.md)	 - MCP server management
 * [tgctl media](tgctl_media.md)	 - Send files: photos, documents, and video
 * [tgctl member](tgctl_member.md)	 - Moderate chat members (ban, restrict, promote)

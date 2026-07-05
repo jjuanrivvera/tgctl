@@ -1,23 +1,22 @@
-## tgctl forum edit-general
+## tgctl log show
 
-Rename the General forum topic
+Show one recorded message, including its full raw API payload
 
 ```
-tgctl forum edit-general [flags]
+tgctl log show <message_id> [flags]
 ```
 
 ### Examples
 
 ```
-  tgctl forum edit-general --chat @group --name "General chat"
+  tgctl log show 42
+  tgctl log show 42 -o json
 ```
 
 ### Options
 
 ```
-      --chat string   target chat: numeric id or @username
-  -h, --help          help for edit-general
-      --name string   new name for the General topic (1-128 chars)
+  -h, --help   help for show
 ```
 
 ### Options inherited from parent commands
@@ -39,5 +38,5 @@ tgctl forum edit-general [flags]
 
 ### SEE ALSO
 
-* [tgctl forum](tgctl_forum.md)	 - Manage forum topics in supergroups
+* [tgctl log](tgctl_log.md)	 - Query tgctl's local send/receive history
 
