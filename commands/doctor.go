@@ -74,6 +74,7 @@ func runDoctor(cmd *cobra.Command) []check {
 		checks = append(checks, check{Name: "credentials resolvable", OK: false, Detail: err.Error()})
 		return checks
 	}
+	defer func() { _ = client.Close() }()
 	checks = append(checks, check{Name: "credentials resolvable", OK: true, Detail: "token found"})
 	checks = append(checks, check{Name: "base URL", OK: true, Detail: client.BaseURL()})
 

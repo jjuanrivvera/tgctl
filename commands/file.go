@@ -52,6 +52,7 @@ to stdout. Honors --dry-run (it prints the getFile request without downloading).
 			if err != nil {
 				return err
 			}
+			defer func() { _ = client.Close() }()
 			ctx := cmd.Context()
 			raw, err := client.Call(ctx, "getFile", map[string]any{"file_id": fileID}, true)
 			if err != nil {

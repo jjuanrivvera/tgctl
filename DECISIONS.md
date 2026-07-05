@@ -42,6 +42,73 @@ never silently re-decide.
   `Extra` on the `file` group (same pattern as `webhook listen`); `file info` is the pure
   getFile wrap. Not in `api-manifest.json` for the same reason. The token is embedded by the
   authenticator (`FileURL`) and never logged.
+- **`log` (local SQLite message history, issue #5)** — every outbound send (and, in
+  polling/webhook mode, every inbound update) is recorded to a per-bot-profile SQLite database,
+  so a restarted/compacted session — or any external tool — can answer "what did you send/
+  receive, when, to whom" even though the Bot API itself has no history endpoint. `log` is a
+  hand-written top-level command (like `doctor`/`config`, registered via plain `register()`,
+  not `registerGroup`) because it isn't a Bot API method at all — reads from a local DB, needs
+  no client. It is deliberately **not** in `excludedFromMCP`: unlike `doctor`/`config`/`init`,
+  an agent driving tgctl is exactly who benefits from being able to query its own send/receive
+  history, so `log`/`log search`/`log show` are exposed read-only and `log prune` destructive
+  (`markKind` called directly since there's no `registerGroup` to stamp it). Not in
+  `api-manifest.json`/`spec-check`/`spec-completeness` for the same reason as `webhook listen`
+  and `file download`: those track the pure Bot API surface, and spec-check only asserts a
+  manifest resource resolves to a real command — it never asserts the reverse (that every real
+  command must be in the manifest), so a value-add command outside it is never a spec-check
+  failure.
+  - **Driver: `modernc.org/sqlite` (pure Go, no cgo).** tgctl has no cgo dependency today and
+    GoReleaser cross-compiles linux/darwin/windows from one toolchain (`CGO_ENABLED=0`); a
+    cgo-based driver (mattn/go-sqlite3) would break that. FTS5 was verified present in this
+    driver version (v1.53.0) at development time; `Store.tryEnableFTS` still probes for the
+    module at runtime and `Search` degrades to a `LIKE` scan if it's ever absent from a future
+    minimal build, so the fallback isn't purely theoretical.
+  - **DB path**: `<config.Dir()>/messages/<profile>.db`, one file per bot profile — dir 0700,
+    file 0600 (matches `config.Save`'s posture; the DB can hold full message text).
+    `store.PathFor` re-validates the profile name via `config.ValidateProfileName` even though
+    profile names are validated elsewhere too (`alias set`, `config set`): the *active* profile
+    for any given invocation comes from `--bot`/`$TGCTL_BOT`, which is **not** otherwise
+    validated before reaching a client, so this is the one thing standing between a crafted
+    `--bot ../../x` and a path escape (`ValidateProfileName` rejects `/`/`\`, which is what
+    actually makes the path join safe).
+  - **Write-path hook is generic**: `internal/api` gained a narrow `Recorder` interface +
+    `WithRecorder` option; `Call`/`Upload` invoke it once per successful, non-dry-run call with
+    `(ctx, method, params, result)`. `internal/api` never imports `internal/store` — the
+    concrete adapter (`commands.storeRecorder`) lives in `commands`, which already depends on
+    both. This keeps adding a new send command a zero-edit change to the recording path: extend
+    `messageBearingMethods` (in `commands/recorder.go`), nothing else.
+  - **Extraction preference: API result over request params.** Telegram always resolves and
+    echoes the numeric `chat.id`/`message_id` in a successful response, even when the request
+    targeted `@username` — so the result is the more reliable source for `chat_id`; params are
+    only a fallback (e.g. an inline-message edit whose result is a bare `true`).
+  - **`sendMediaGroup` records one row**, taken from the first element of the returned array —
+    matches "one write per successful call," not "one write per message in the batch."
+  - **Inbound recording is NOT generic** (unlike the outbound hook): `commands/updates.go`
+    (`updates get`) and `commands/webhook_listen.go` (`webhook listen`) are the only two places
+    an inbound `Update` is ever seen, and both call `commands.recordInboundMessage` directly.
+    `updates get` needed a new `methodCmd.PostSuccess` hook on the generic builder (it has no
+    other way to act on a raw result before render without forking `buildMethodCmd`) — the same
+    "extend, don't fork" pattern as `Extra`.
+  - **Store failures never break a send or a poll**: every write-path caller (`storeRecorder`,
+    `recordInboundMessage`) logs a warning to stderr (respecting `--quiet`) and swallows the
+    error. Reading is the opposite: `tgctl log`'s `withReadStore` returns store-open failures as
+    real command errors, since reading the history *is* the command's entire purpose — silently
+    printing "no messages" on a broken store would be misleading, not merely degraded.
+  - **`(*api.Client).Close()` closes the recorder if it implements `io.Closer`.** Every
+    `clientFromCmd` call site `defer client.Close()`s. This wasn't optional polish: leaving the
+    store's SQLite handle open for the life of the process passed on Unix (an open-but-unlinked
+    file is fine there) but broke Windows CI — `t.TempDir()`'s `RemoveAll` cleanup can't delete a
+    file a still-open handle points at, so nearly every command test failed on
+    `windows-latest` once the recorder started opening a store per command. `clientFromCmd` also
+    skips opening the store at all under `--dry-run` (no API call is made, so there's nothing to
+    record) — this alone fixed the large `TestAllCommands_DryRun` table and avoids creating a DB
+    file for a command that will never write to it.
+  - **`--no-store`** (persistent flag, default off) disables the write path for one invocation.
+    It does not affect `tgctl log` itself, which always reads regardless (there is nothing to
+    opt out of when the command doesn't write).
+  - **`Show` by `message_id` returns the newest match** when the same numeric id exists across
+    multiple chats (Telegram's `message_id` is only unique per-chat, not globally) — good enough
+    for a single-operator CLI; `tgctl log --chat <id>` disambiguates when needed.
 
 ## Resource set (derived from the Bot API method surface; see api-manifest.json)
 Grouped by noun; verbs map 1:1 to Bot API methods. Read-only verbs annotated read-only for

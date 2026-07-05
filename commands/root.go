@@ -14,6 +14,7 @@ import (
 	"github.com/jjuanrivvera/tgctl/internal/auth"
 	"github.com/jjuanrivvera/tgctl/internal/config"
 	"github.com/jjuanrivvera/tgctl/internal/output"
+	"github.com/jjuanrivvera/tgctl/internal/store"
 )
 
 // registrations are applied to each fresh root command. Command files append to it in init().
@@ -69,7 +70,7 @@ var commandGroups = map[string]string{
 	"chat": "chats", "member": "chats", "invite": "chats", "user": "chats", "updates": "chats",
 	"forum": "chats", "verify": "chats",
 	"bot": "config", "commands": "config", "webhook": "config", "stars": "config",
-	"auth": "meta", "config": "meta", "init": "meta", "doctor": "meta",
+	"auth": "meta", "config": "meta", "init": "meta", "doctor": "meta", "log": "meta",
 	"alias": "meta", "api": "meta", "version": "meta", "completion": "meta",
 	"mcp": "agents", "agent": "agents",
 }
@@ -107,10 +108,15 @@ func addGlobalFlags(root *cobra.Command) {
 	pf.Bool("quiet", false, "suppress notes on stderr")
 	pf.String("jq", "", "gojq expression applied to the result before rendering")
 	pf.Float64("rps", 0, "client-side requests-per-second cap (0 = default)")
+	pf.Bool("no-store", false, "disable local SQLite send/receive history for this invocation (see tgctl log)")
 }
 
 // clientFromCmd builds an API client from the resolved profile, token, and global flags.
 // Token precedence: $TGCTL_TOKEN > $TELEGRAM_BOT_TOKEN > the profile's keyring entry.
+//
+// Every caller must `defer client.Close()` once err is nil: the client may hold an open message
+// store file handle (its Recorder), and Close is always safe to call (a no-op when there is no
+// recorder to close).
 func clientFromCmd(cmd *cobra.Command) (*api.Client, error) {
 	f := cmd.Flags()
 	profileFlag := resolveBotFlag(cmd)
@@ -159,7 +165,61 @@ func clientFromCmd(cmd *cobra.Command) (*api.Client, error) {
 	if rps > 0 {
 		opts = append(opts, api.WithRPS(rps))
 	}
+	// The store hook is best-effort and additive: a disabled/unavailable store never prevents
+	// building a client, so a send still works even when local history doesn't (DECISIONS.md).
+	// Dry-run makes no API call at all, so there is nothing to record — skip opening the store
+	// entirely rather than create a DB file (and a handle every caller must remember to close)
+	// for a command that will never write to it.
+	if !dryRun {
+		if st := openStoreForWrite(cmd); st != nil {
+			quiet, _ := f.GetBool("quiet")
+			opts = append(opts, api.WithRecorder(&storeRecorder{st: st, quiet: quiet}))
+		}
+	}
 	return api.New(authr, opts...), nil
+}
+
+// openStoreForWrite opens the active profile's local message store for the write/record path:
+// outbound sends via storeRecorder (above) and inbound updates via
+// commands/updates.go/commands/webhook_listen.go, honoring --no-store. It resolves the profile
+// itself (rather than taking one as a parameter) so every write-path call site — including the
+// ones that never build an api.Client — shares this one helper. Unlike openStoreForRead
+// (commands/log.go), failure here is never fatal: nil means "recording is disabled for this
+// call", and callers must keep going without it.
+func openStoreForWrite(cmd *cobra.Command) *store.Store {
+	if noStore, _ := cmd.Flags().GetBool("no-store"); noStore {
+		return nil
+	}
+	profileName, _, err := resolveProfileName(cmd)
+	if err != nil {
+		warnStoreUnavailable(cmd, err)
+		return nil
+	}
+	dir, err := config.Dir()
+	if err != nil {
+		warnStoreUnavailable(cmd, err)
+		return nil
+	}
+	path, err := store.PathFor(dir, profileName)
+	if err != nil {
+		warnStoreUnavailable(cmd, err)
+		return nil
+	}
+	st, err := store.Open(path)
+	if err != nil {
+		warnStoreUnavailable(cmd, err)
+		return nil
+	}
+	return st
+}
+
+// warnStoreUnavailable notes a store-open failure on stderr, respecting --quiet. It is never
+// an error returned to the caller: see openStoreForWrite.
+func warnStoreUnavailable(cmd *cobra.Command, err error) {
+	if quiet, _ := cmd.Flags().GetBool("quiet"); quiet {
+		return
+	}
+	fmt.Fprintf(cmd.ErrOrStderr(), "tgctl: warning: message store unavailable (%v) — continuing without local history\n", err)
 }
 
 // render writes data using the format/columns/jq/quiet flags, to the command's streams.

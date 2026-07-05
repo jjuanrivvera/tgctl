@@ -134,6 +134,7 @@ func authStatusCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("not authenticated (profile %q): %w", profileName, err)
 			}
+			defer func() { _ = client.Close() }()
 			me, err := client.GetMe(cmd.Context())
 			if err != nil {
 				return fmt.Errorf("token invalid for profile %q: %w", profileName, err)

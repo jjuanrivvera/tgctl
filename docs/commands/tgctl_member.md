@@ -21,6 +21,7 @@ Administrative actions on members. The bot must be an admin with the relevant ri
       --dry-run           print the equivalent curl and make no request
       --jq string         gojq expression applied to the result before rendering
       --no-color          disable colored output
+      --no-store          disable local SQLite send/receive history for this invocation (see tgctl log)
   -o, --output string     output format: table|json|yaml|csv|id (default "table")
       --quiet             suppress notes on stderr
       --rps float         client-side requests-per-second cap (0 = default)
