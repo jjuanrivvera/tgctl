@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit configuration.
+#
+# The generated command reference under docs/commands/*.md is produced by `make docs-gen`
+# and verified by CI's drift check — it does not need AI review. It's also large: a single
+# global flag change rewrites every command's doc, which alone can push a PR past CodeRabbit's
+# per-PR file limit and cause the whole review to be skipped. Exclude it so the actual code
+# still gets reviewed.
+reviews:
+  path_filters:
+    - "!docs/**"
