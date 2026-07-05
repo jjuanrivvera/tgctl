@@ -91,6 +91,11 @@ type methodCmd struct {
 	Flags   []flagSpec
 	Files   []fileSpec
 	Columns []string
+	// PostSuccess, if set, runs after a successful non-dry-run call and before render — a
+	// narrow escape hatch for the one verb (updates get) that needs to act on the raw result
+	// beyond rendering it (recording inbound messages to the local store, issue #5). Extend,
+	// don't fork buildMethodCmd, matching the Extra[] pattern used for hand-written verbs.
+	PostSuccess func(cmd *cobra.Command, raw json.RawMessage)
 }
 
 // group is a noun with its verbs.
@@ -210,6 +215,9 @@ func buildMethodCmd(mc methodCmd) *cobra.Command {
 		}
 		if err != nil {
 			return err
+		}
+		if mc.PostSuccess != nil {
+			mc.PostSuccess(cmd, raw)
 		}
 		if len(mc.Columns) > 0 && !cmd.Flags().Changed("columns") {
 			// Apply the command's default columns unless the user overrode --columns.
