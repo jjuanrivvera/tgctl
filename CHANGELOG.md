@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Local SQLite message history (issue #5)**: every outbound send (and, in
+  `updates get`/`webhook listen` mode, every inbound update) is now recorded to a
+  per-bot-profile SQLite database, since the Bot API itself exposes no history endpoint. New
+  `tgctl log` command family:
+  - `tgctl log [--chat <id>] [--since 24h|RFC3339|YYYY-MM-DD] [--kind text] [--limit 50]` —
+    list recorded messages.
+  - `tgctl log search <query>` — full-text search (FTS5 `MATCH` when available, degrading
+    automatically to a `LIKE` scan otherwise).
+  - `tgctl log show <message_id>` — one message including its full raw API payload.
+  - `tgctl log prune --older-than <duration>` — delete rows older than a cutoff.
+  - New persistent `--no-store` flag disables recording for a single invocation. The store is
+    always best-effort on the write path: a failed/unavailable store never breaks a send.
+  - `log`/`log search`/`log show` are exposed to the MCP server (read-only); `log prune` is
+    destructive. See DECISIONS.md for the full write-up.
+
 ## [0.2.0] - 2026-07-02
 
 ### Added
