@@ -2,10 +2,13 @@ package commands
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/jjuanrivvera/tgctl/internal/store"
 )
 
 func TestBuildOutboundMessage(t *testing.T) {
@@ -181,4 +184,23 @@ func TestFirstNonZero(t *testing.T) {
 	assert.EqualValues(t, 5, firstNonZero(0, 5, 9))
 	assert.EqualValues(t, 0, firstNonZero(0, 0))
 	assert.EqualValues(t, 0, firstNonZero())
+}
+
+// TestStoreRecorder_Close pins the Windows CI regression fix: storeRecorder must implement
+// io.Closer and actually close the underlying *store.Store, not just satisfy the interface.
+// Record()ing after Close() failing proves the real sql.DB handle was released, not merely
+// that Close() returned nil without doing anything.
+func TestStoreRecorder_Close(t *testing.T) {
+	st, err := store.Open(filepath.Join(t.TempDir(), "default.db"))
+	require.NoError(t, err)
+	r := &storeRecorder{st: st}
+
+	require.NoError(t, r.Close())
+	err = st.Record(t.Context(), store.Message{Direction: "out", ChatID: 1, Kind: "text", Text: "after close"})
+	assert.Error(t, err, "the store's sql.DB must actually be closed, not just no-op'd")
+}
+
+func TestStoreRecorder_Close_NilStoreIsNoop(t *testing.T) {
+	r := &storeRecorder{}
+	assert.NoError(t, r.Close())
 }

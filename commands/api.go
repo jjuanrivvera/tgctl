@@ -46,6 +46,7 @@ methods (getX) so transient failures retry safely.`,
 				if err != nil {
 					return err
 				}
+				defer func() { _ = client.Close() }()
 				raw, err := client.Call(cmd.Context(), method, params, idempotent)
 				if err != nil {
 					return err

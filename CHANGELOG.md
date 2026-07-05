@@ -22,6 +22,15 @@ All notable changes to this project are documented here. The format is based on
   - `log`/`log search`/`log show` are exposed to the MCP server (read-only); `log prune` is
     destructive. See DECISIONS.md for the full write-up.
 
+### Fixed
+- The message store's SQLite handle is now closed when a command finishes:
+  `(*api.Client).Close()` closes an attached recorder if it implements `io.Closer`,
+  and every `clientFromCmd` call site defers it. The handle was previously never
+  closed, which passed on Unix but broke Windows CI (an open file handle blocks
+  deleting/renaming it, so `t.TempDir()` cleanup failed for nearly every command
+  test). `--dry-run` also now skips opening the store entirely, since it makes no
+  API call and has nothing to record.
+
 ## [0.2.0] - 2026-07-02
 
 ### Added

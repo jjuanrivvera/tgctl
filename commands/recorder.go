@@ -64,6 +64,17 @@ func (r *storeRecorder) Record(ctx context.Context, method string, params map[st
 	}
 }
 
+// Close implements io.Closer so api.Client.Close (called via defer at every clientFromCmd call
+// site) releases the store's SQLite file handle. Without this the handle stays open for the
+// life of the process — harmless on Unix, but it blocks Windows from deleting/renaming the file
+// (e.g. a test's t.TempDir() cleanup) until something closes it.
+func (r *storeRecorder) Close() error {
+	if r.st == nil {
+		return nil
+	}
+	return r.st.Close()
+}
+
 // buildOutboundMessage extracts a store.Message from a successful send/edit call. The API's
 // own response is preferred over the request params wherever both could carry a field (e.g.
 // chat_id): Telegram always resolves and echoes back the numeric chat/message id in the

@@ -94,6 +94,15 @@ never silently re-decide.
     error. Reading is the opposite: `tgctl log`'s `withReadStore` returns store-open failures as
     real command errors, since reading the history *is* the command's entire purpose — silently
     printing "no messages" on a broken store would be misleading, not merely degraded.
+  - **`(*api.Client).Close()` closes the recorder if it implements `io.Closer`.** Every
+    `clientFromCmd` call site `defer client.Close()`s. This wasn't optional polish: leaving the
+    store's SQLite handle open for the life of the process passed on Unix (an open-but-unlinked
+    file is fine there) but broke Windows CI — `t.TempDir()`'s `RemoveAll` cleanup can't delete a
+    file a still-open handle points at, so nearly every command test failed on
+    `windows-latest` once the recorder started opening a store per command. `clientFromCmd` also
+    skips opening the store at all under `--dry-run` (no API call is made, so there's nothing to
+    record) — this alone fixed the large `TestAllCommands_DryRun` table and avoids creating a DB
+    file for a command that will never write to it.
   - **`--no-store`** (persistent flag, default off) disables the write path for one invocation.
     It does not affect `tgctl log` itself, which always reads regardless (there is nothing to
     opt out of when the command doesn't write).

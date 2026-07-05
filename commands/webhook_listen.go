@@ -52,6 +52,9 @@ stops the server (and deletes the webhook if --delete-on-exit).`,
 				if err != nil {
 					return err
 				}
+				// Registered before the deleteOnExit defer below, so LIFO ordering runs the
+				// webhook cleanup call first and closes the client (and its store handle) last.
+				defer func() { _ = client.Close() }()
 				params := map[string]any{"url": setURL}
 				if secret != "" {
 					params["secret_token"] = secret

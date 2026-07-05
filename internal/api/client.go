@@ -80,6 +80,19 @@ func WithRecorder(r Recorder) Option { return func(c *Client) { c.recorder = r }
 // BaseURL returns the configured base URL.
 func (c *Client) BaseURL() string { return c.baseURL }
 
+// Close releases resources an attached Recorder holds — e.g. the local message store's SQLite
+// file handle (issue #5) — by closing it if it implements io.Closer. A Client with no recorder,
+// or a recorder that isn't a Closer, makes this a no-op, so every clientFromCmd caller can defer
+// Close() unconditionally. This matters beyond tidiness: on Windows, a file handle left open for
+// the life of the process blocks deleting or renaming that file (e.g. a test's t.TempDir()
+// cleanup) even though Unix tolerates an open-but-unlinked file just fine.
+func (c *Client) Close() error {
+	if closer, ok := c.recorder.(io.Closer); ok {
+		return closer.Close()
+	}
+	return nil
+}
+
 // apiResponse is the Bot API envelope shared by every method.
 type apiResponse struct {
 	OK          bool            `json:"ok"`

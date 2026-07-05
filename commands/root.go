@@ -113,6 +113,10 @@ func addGlobalFlags(root *cobra.Command) {
 
 // clientFromCmd builds an API client from the resolved profile, token, and global flags.
 // Token precedence: $TGCTL_TOKEN > $TELEGRAM_BOT_TOKEN > the profile's keyring entry.
+//
+// Every caller must `defer client.Close()` once err is nil: the client may hold an open message
+// store file handle (its Recorder), and Close is always safe to call (a no-op when there is no
+// recorder to close).
 func clientFromCmd(cmd *cobra.Command) (*api.Client, error) {
 	f := cmd.Flags()
 	profileFlag := resolveBotFlag(cmd)
@@ -163,9 +167,14 @@ func clientFromCmd(cmd *cobra.Command) (*api.Client, error) {
 	}
 	// The store hook is best-effort and additive: a disabled/unavailable store never prevents
 	// building a client, so a send still works even when local history doesn't (DECISIONS.md).
-	if st := openStoreForWrite(cmd); st != nil {
-		quiet, _ := f.GetBool("quiet")
-		opts = append(opts, api.WithRecorder(&storeRecorder{st: st, quiet: quiet}))
+	// Dry-run makes no API call at all, so there is nothing to record — skip opening the store
+	// entirely rather than create a DB file (and a handle every caller must remember to close)
+	// for a command that will never write to it.
+	if !dryRun {
+		if st := openStoreForWrite(cmd); st != nil {
+			quiet, _ := f.GetBool("quiet")
+			opts = append(opts, api.WithRecorder(&storeRecorder{st: st, quiet: quiet}))
+		}
 	}
 	return api.New(authr, opts...), nil
 }

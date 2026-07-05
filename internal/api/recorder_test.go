@@ -120,3 +120,56 @@ func TestClient_Upload_DoesNotRecordOnError(t *testing.T) {
 	require.Error(t, err)
 	assert.Empty(t, rec.calls)
 }
+
+// closingSpyRecorder is a spyRecorder that also implements io.Closer, so tests can prove
+// Client.Close() actually delegates to it rather than merely not panicking.
+type closingSpyRecorder struct {
+	spyRecorder
+	closed bool
+	err    error
+}
+
+func (c *closingSpyRecorder) Close() error {
+	c.closed = true
+	return c.err
+}
+
+// TestClient_Close_ClosesRecorder pins the fix for a Windows CI regression: clientFromCmd
+// attaches a store-backed Recorder to every client, and nothing was closing it, so the SQLite
+// file handle stayed open for the life of the process — harmless on Unix, but it blocked
+// Windows from deleting/renaming the file (e.g. a test's t.TempDir() cleanup). Close() must
+// reach the recorder's own Close so every clientFromCmd caller can defer it uniformly.
+func TestClient_Close_ClosesRecorder(t *testing.T) {
+	rec := &closingSpyRecorder{}
+	auth, err := NewBotTokenAuth("123456:TESTHASHVALUE")
+	require.NoError(t, err)
+	c := New(auth, WithRecorder(rec))
+
+	require.NoError(t, c.Close())
+	assert.True(t, rec.closed, "Client.Close must close a Recorder that implements io.Closer")
+}
+
+func TestClient_Close_PropagatesRecorderCloseError(t *testing.T) {
+	wantErr := assert.AnError
+	rec := &closingSpyRecorder{err: wantErr}
+	auth, err := NewBotTokenAuth("123456:TESTHASHVALUE")
+	require.NoError(t, err)
+	c := New(auth, WithRecorder(rec))
+
+	assert.ErrorIs(t, c.Close(), wantErr)
+}
+
+func TestClient_Close_NoRecorderIsNoop(t *testing.T) {
+	auth, err := NewBotTokenAuth("123456:TESTHASHVALUE")
+	require.NoError(t, err)
+	c := New(auth) // no WithRecorder at all
+	assert.NoError(t, c.Close())
+}
+
+func TestClient_Close_NonCloserRecorderIsNoop(t *testing.T) {
+	// spyRecorder implements api.Recorder but not io.Closer — Close must not panic or error.
+	auth, err := NewBotTokenAuth("123456:TESTHASHVALUE")
+	require.NoError(t, err)
+	c := New(auth, WithRecorder(&spyRecorder{}))
+	assert.NoError(t, c.Close())
+}
