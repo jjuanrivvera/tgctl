@@ -1,12 +1,12 @@
 # tgctl — a command-line tool for the Telegram Bot API
 
+> 🏭 Part of the [cliwright](https://cliwright.jjuanrivvera.com) CLI fleet.
+
 `tgctl` wraps the [Telegram Bot API](https://core.telegram.org/bots/api) in a fast,
 scriptable, `gh`-style CLI: send messages, manage chats and members, configure webhooks and
 the bot's command menu, and poll updates — with table/JSON/YAML/CSV output, named profiles
 for multiple bots, OS-keyring token storage, and an MCP server so AI agents can drive it
 safely.
-
-> 🏭 Built with [cliwright](https://github.com/jjuanrivvera/cliwright) — a spec-gated CLI factory.
 
 ```console
 $ tgctl auth login                 # store a @BotFather token in your OS keyring
