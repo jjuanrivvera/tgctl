@@ -2,6 +2,8 @@ module github.com/jjuanrivvera/tgctl
 
 go 1.25.0
 
+toolchain go1.25.12
+
 require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/itchyny/gojq v0.12.19

@@ -4,7 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.2] - 2026-07-12
+
+### Security
+- Bump the Go toolchain to **go1.25.12**, clearing the reachable standard-library advisories
+  (crypto/tls GO-2026-5856, crypto/x509, net/http, net/textproto) that govulncheck flagged.
+
+## [0.2.1] - 2026-07-12
+
+### Fixed
+- The hidden secret prompt now reads in **raw mode** instead of `term.ReadPassword`'s canonical
+  mode (capped at MAX_CANON, 1024 bytes on macOS), so a long pasted token no longer hangs the
+  prompt until Ctrl-C. Bracketed-paste markers are still stripped as a defensive guard.
 
 ### Added
 - **Local SQLite message history (issue #5)**: every outbound send (and, in
