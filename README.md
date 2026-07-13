@@ -1,6 +1,23 @@
-# tgctl — a command-line tool for the Telegram Bot API
+<div align="center">
 
-> 🏭 Part of the [cliwright](https://cliwright.jjuanrivvera.com) CLI fleet.
+# tgctl
+
+[![CI](https://github.com/jjuanrivvera/tgctl/actions/workflows/ci.yml/badge.svg)](https://github.com/jjuanrivvera/tgctl/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/jjuanrivvera/tgctl)](https://github.com/jjuanrivvera/tgctl/releases/latest)
+[![Coverage](https://img.shields.io/badge/coverage-%E2%89%A580%25-brightgreen)](https://github.com/jjuanrivvera/tgctl/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jjuanrivvera/tgctl.svg)](https://pkg.go.dev/github.com/jjuanrivvera/tgctl)
+[![Go version](https://img.shields.io/github/go-mod/go-version/jjuanrivvera/tgctl)](go.mod)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jjuanrivvera/tgctl)
+[![Built with cliwright](https://img.shields.io/badge/built_with-cliwright-1f6feb)](https://cliwright.jjuanrivvera.com)
+
+**A gh-style CLI for the Telegram Bot API — messages, chats, webhooks, and local message history.**
+
+[Documentation](https://jjuanrivvera.github.io/tgctl/) · [Commands](https://jjuanrivvera.github.io/tgctl/commands/)
+
+</div>
+
+---
 
 `tgctl` wraps the [Telegram Bot API](https://core.telegram.org/bots/api) in a fast,
 scriptable, `gh`-style CLI: send messages, manage chats and members, configure webhooks and
