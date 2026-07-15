@@ -71,7 +71,7 @@ var commandGroups = map[string]string{
 	"forum": "chats", "verify": "chats",
 	"bot": "config", "commands": "config", "webhook": "config", "stars": "config",
 	"auth": "meta", "config": "meta", "init": "meta", "doctor": "meta", "log": "meta",
-	"alias": "meta", "api": "meta", "version": "meta", "completion": "meta",
+	"alias": "meta", "api": "meta", "version": "meta", "completion": "meta", "update": "meta",
 	"mcp": "agents", "agent": "agents",
 }
 
