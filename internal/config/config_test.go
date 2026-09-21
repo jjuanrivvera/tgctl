@@ -42,6 +42,9 @@ func TestConfig_LoadMissingIsEmpty(t *testing.T) {
 
 func TestResolveProfileName_Precedence(t *testing.T) {
 	c := &Config{CurrentProfile: "fromfile"}
+	// TGCTL_BOT outranks everything below the flag, so an ambient one — any shell that
+	// exports it — would otherwise decide this test's outcome.
+	t.Setenv("TGCTL_BOT", "")
 	t.Setenv("TGCTL_PROFILE", "")
 	assert.Equal(t, "flag", c.ResolveProfileName("flag"))
 	assert.Equal(t, "fromfile", c.ResolveProfileName(""))
