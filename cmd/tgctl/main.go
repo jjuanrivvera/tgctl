@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/jjuanrivvera/tgctl/commands"
+	"github.com/jjuanrivvera/tgctl/internal/api"
 	"github.com/jjuanrivvera/tgctl/internal/version"
 )
 
@@ -27,7 +28,16 @@ func main() {
 	root.SetArgs(commands.ExpandAliases(os.Args[1:]))
 
 	if err := root.ExecuteContext(ctx); err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
+		fmt.Fprintln(os.Stderr, errorLine(err))
 		os.Exit(1)
 	}
+}
+
+// errorLine renders the message a failed command writes to stderr. It is the second layer of
+// token redaction (issue #21): internal/api already scrubs the credential out of every error
+// it returns, and this is the last boundary before the text leaves the process — the one an
+// MCP client reads, since the server re-executes this binary and hands the caller its stderr
+// verbatim. A future code path that reintroduces the secret still cannot get it past here.
+func errorLine(err error) string {
+	return "Error: " + api.RedactSecrets(err.Error())
 }
