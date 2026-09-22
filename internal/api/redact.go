@@ -20,8 +20,10 @@ var tokenInURLRe = regexp.MustCompile(`(/(?:file/)?bot)(-?\d+):[A-Za-z0-9_-]+`)
 
 // bareTokenRe matches a token that appears outside a URL (an env var echoed into a message,
 // a config dump). It demands both halves of the "<bot_id>:<hash>" shape with a hash long
-// enough that ordinary "id:value" text does not match.
-var bareTokenRe = regexp.MustCompile(`\b(\d{5,}):[A-Za-z0-9_-]{20,}\b`)
+// enough that ordinary "id:value" text does not match. There is deliberately no trailing \b:
+// a hash ending in "-" would otherwise leave that character outside the match, and the job
+// here is to consume the whole credential, not to stop on a word boundary.
+var bareTokenRe = regexp.MustCompile(`\b(\d{5,}):[A-Za-z0-9_-]{20,}`)
 
 // RedactSecrets masks any Telegram bot token found anywhere in s. It is pattern-based, so it
 // works without knowing which token is active — that makes it usable as a last line of

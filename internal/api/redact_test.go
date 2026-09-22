@@ -39,6 +39,12 @@ func TestRedactSecrets(t *testing.T) {
 		in:   "TGCTL_TOKEN=" + fakeToken + " is invalid",
 		want: "TGCTL_TOKEN=123456789:<redacted> is invalid",
 	}, {
+		// A hash ending in "-" must be consumed whole; a trailing word boundary would
+		// have left that character dangling after the marker.
+		name: "bare token whose hash ends in a hyphen",
+		in:   "token=123456789:AAFfakeFAKEfakeFAKEfakeFAKEfake0- rejected",
+		want: "token=123456789:<redacted> rejected",
+	}, {
 		name: "already redacted text is left alone",
 		in:   "https://api.telegram.org/bot123456789:<redacted>/getMe",
 		want: "https://api.telegram.org/bot123456789:<redacted>/getMe",
