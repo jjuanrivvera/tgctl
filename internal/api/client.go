@@ -199,11 +199,11 @@ func (c *Client) DownloadFile(ctx context.Context, filePath string, w io.Writer)
 	url := c.auth.FileURL(c.baseURL, filePath)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return 0, err
+		return 0, c.redactError(err)
 	}
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("download %s: %w", filePath, err)
+		return 0, fmt.Errorf("download %s: %w", filePath, c.redactError(err))
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
@@ -249,13 +249,13 @@ func (c *Client) do(ctx context.Context, req *preparedRequest) (json.RawMessage,
 
 		httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(req.body))
 		if err != nil {
-			return nil, err
+			return nil, c.redactError(err)
 		}
 		httpReq.Header.Set("Content-Type", req.contentType)
 
 		resp, err := c.http.Do(httpReq) //nolint:bodyclose // body is read+closed in parse()
 		if err != nil {
-			lastErr = fmt.Errorf("%s: %w", req.method, err)
+			lastErr = fmt.Errorf("%s: %w", req.method, c.redactError(err))
 			if retry, wait := c.retry.decide(attempt, 0, 0, true, req.idempotent); retry {
 				if serr := sleepCtx(ctx, wait); serr != nil {
 					return nil, serr

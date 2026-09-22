@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+- **The bot token no longer leaks when a request fails at the transport level (issue #21).**
+  The Bot API carries its credential in the URL path, and Go's `*url.Error` — which
+  `http.Client.Do` returns for every dropped connection, DNS failure or read timeout — prints
+  that URL verbatim. The secret therefore reached stderr, any log capturing it, and the tool
+  result an MCP client stores in its transcript, bypassing the keyring that exists precisely
+  so the token never touches disk in clear text. Redaction now happens in two places:
+  - `internal/api` masks the credential in every error leaving the network path (method calls
+    and the `/file/bot<token>/…` download URL alike), keeping the non-secret bot id so an
+    error still says which bot failed, and preserving the cause so `errors.Is`/`errors.As`
+    keep working.
+  - `cmd/tgctl` masks it again on the way to stderr — the last boundary before text leaves
+    the process, and the one an MCP client reads.
+
+  `--dry-run` already redacted (and still honors the explicit `--show-token`); `--verbose`
+  logs responses, never the request URL.
+
 ## [0.2.2] - 2026-07-12
 
 ### Security
