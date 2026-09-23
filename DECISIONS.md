@@ -124,9 +124,14 @@ below its threshold without a recorded waiver.
 moderation, forum-topic management, invite links (incl. subscription links), bot configuration,
 Telegram Stars, chat/user verification, webhooks, updates, files, callbacks, and inline queries.
 
-**coverage-waiver: 82% (111/135, of an 8.3 enumeration — see the profile-photo note below).
-The 26 uncovered methods are five genuinely-niche families
-deferred deliberately, not overlooked** — each is a self-contained sub-API most bots never touch:
+**coverage-waiver: 60% (111/185). The 74 uncovered methods are the niche families below,
+deferred deliberately, not overlooked.** The baseline was re-derived on 2026-09-23 against the
+published method index (Bot API 10.3). It previously enumerated **8.3** via a community machine
+spec that had gone 50 methods stale, so the recorded 82% was measuring against a two-versions-old
+API: the real figure was 60% the whole time. The percentage dropped without a single command being
+removed — that is the gate finally telling the truth.
+
+Deferred since the first pass (self-contained sub-APIs most bots never touch):
 - **stickers-set-management (15)** — createNewStickerSet, addStickerToSet, replaceStickerInSet,
   deleteStickerFromSet, deleteStickerSet, setSticker*, getStickerSet, getCustomEmojiStickers,
   uploadStickerFile, setCustomEmojiStickerSetThumbnail. A full sticker-authoring workflow.
@@ -134,8 +139,27 @@ deferred deliberately, not overlooked** — each is a self-contained sub-API mos
   answerPreCheckoutQuery. Requires a payment-provider token and a checkout callback loop.
 - **games (3)** — sendGame, setGameScore, getGameHighScores. The HTML5 Games platform.
 - **telegram-passport (1)** — setPassportDataErrors. Encrypted identity documents.
-- **business-connection (3)** — getBusinessConnection, answerWebAppQuery,
-  savePreparedInlineMessage. Telegram Business / Web-App-specific.
+
+New in 8.3 → 10.3 and not yet wrapped (48), grouped as they would be shipped:
+- **business accounts (12)** — getBusinessConnection, deleteBusinessMessages, readBusinessMessage,
+  setBusinessAccount{Bio,Name,Username,ProfilePhoto,GiftSettings},
+  removeBusinessAccountProfilePhoto, getBusinessAccount{Gifts,StarBalance},
+  transferBusinessAccountStars. Acting on behalf of a connected business account.
+- **gifts & stars (7)** — getUserGifts, getChatGifts, transferGift, upgradeGift,
+  convertGiftToStars, giftPremiumSubscription, getMyStarBalance. Extends the existing `stars`
+  group; the closest family to being worth wrapping next.
+- **ephemeral messages (5)** — deleteEphemeralMessage, editEphemeralMessage{Text,Caption,Media,
+  ReplyMarkup}.
+- **stories (4)** — postStory, editStory, repostStory, deleteStory.
+- **managed bots (4)** — get/setManagedBotAccessSettings, get/replaceManagedBotToken.
+- **web-app & prepared messages (4)** — answerWebAppQuery, savePreparedInlineMessage,
+  savePreparedKeyboardButton, sendChatJoinRequestWebApp.
+- **checklists (2)** — sendChecklist, editMessageChecklist.
+- **suggested posts (2)** — approveSuggestedPost, declineSuggestedPost.
+- **loose ends (8)** — deleteMessageReaction, deleteAllMessageReactions, setChatMemberTag,
+  sendLivePhoto, sendRichMessage, sendMessageDraft, sendRichMessageDraft, answerGuestQuery,
+  answerChatJoinRequestQuery, getUserProfileAudios, getUserPersonalChatMessages. Small additions
+  to groups that already exist (`message`, `member`, `user`), so the cheapest to close.
 
 They stay recorded here (not silently dropped) so the completeness gate sees the decision on
 every pass. Adding any family later is the same declarative pattern (manifest verb → group
@@ -179,9 +203,8 @@ Verified against the published method reference, not recall. Consequences pinned
   inflate the numerator by a command that wraps nothing new. It takes the id from the token's
   non-secret prefix rather than from `getMe` — no extra request, and the only source that
   survives `--dry-run`, where a call returns nothing and `getMe` yields a zero-valued User.
-- **The completeness baseline is stale**: `api_method_source` enumerates Bot API **8.3**
-  (135 methods) while the published API is **10.3**, so `setMyProfilePhoto` /
-  `removeMyProfilePhoto` are not in the denominator at all and the recorded percentage now
-  slightly overstates coverage. Re-deriving the manifest from a current enumeration is its own
-  job — it will surface the whole 8.3→10.3 method gap and move the waiver line.
+- **The completeness baseline was stale**, and this is what surfaced it: `setMyProfilePhoto` /
+  `removeMyProfilePhoto` were not in the denominator at all, because `api_method_source`
+  enumerated Bot API **8.3** while the published API was **10.3**. Re-derived on 2026-09-23 —
+  185 methods, coverage 60% — see the coverage-waiver above.
 
