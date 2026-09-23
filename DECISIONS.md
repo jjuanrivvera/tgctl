@@ -131,7 +131,7 @@ spec that had gone 50 methods stale, so the recorded 82% was measuring against a
 API: the real figure was 60% the whole time. The percentage dropped without a single command being
 removed — that is the gate finally telling the truth.
 
-Deferred since the first pass (self-contained sub-APIs most bots never touch):
+Deferred since the first pass (23) — self-contained sub-APIs most bots never touch:
 - **stickers-set-management (15)** — createNewStickerSet, addStickerToSet, replaceStickerInSet,
   deleteStickerFromSet, deleteStickerSet, setSticker*, getStickerSet, getCustomEmojiStickers,
   uploadStickerFile, setCustomEmojiStickerSetThumbnail. A full sticker-authoring workflow.
@@ -140,7 +140,9 @@ Deferred since the first pass (self-contained sub-APIs most bots never touch):
 - **games (3)** — sendGame, setGameScore, getGameHighScores. The HTML5 Games platform.
 - **telegram-passport (1)** — setPassportDataErrors. Encrypted identity documents.
 
-New in 8.3 → 10.3 and not yet wrapped (48), grouped as they would be shipped:
+The remaining 51, grouped as they would be shipped. All but three arrived with 8.3 → 10.3;
+`getBusinessConnection`, `answerWebAppQuery` and `savePreparedInlineMessage` predate it and were
+previously filed under a "business-connection" family that no longer describes them:
 - **business accounts (12)** — getBusinessConnection, deleteBusinessMessages, readBusinessMessage,
   setBusinessAccount{Bio,Name,Username,ProfilePhoto,GiftSettings},
   removeBusinessAccountProfilePhoto, getBusinessAccount{Gifts,StarBalance},
@@ -156,7 +158,7 @@ New in 8.3 → 10.3 and not yet wrapped (48), grouped as they would be shipped:
   savePreparedKeyboardButton, sendChatJoinRequestWebApp.
 - **checklists (2)** — sendChecklist, editMessageChecklist.
 - **suggested posts (2)** — approveSuggestedPost, declineSuggestedPost.
-- **loose ends (8)** — deleteMessageReaction, deleteAllMessageReactions, setChatMemberTag,
+- **loose ends (11)** — deleteMessageReaction, deleteAllMessageReactions, setChatMemberTag,
   sendLivePhoto, sendRichMessage, sendMessageDraft, sendRichMessageDraft, answerGuestQuery,
   answerChatJoinRequestQuery, getUserProfileAudios, getUserPersonalChatMessages. Small additions
   to groups that already exist (`message`, `member`, `user`), so the cheapest to close.
