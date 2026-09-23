@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-09-23
 
 ### Added
 - **`tgctl api` can upload files (issue #24).** The escape hatch only spoke JSON, so every
@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format is based on
   command says so up front instead of forwarding the value and relaying a 400. The wire shape
   (an `InputProfilePhoto` object pointing at the upload with `attach://`, and the animated
   variant naming its field `animation`) is pinned in DECISIONS.md.
+
+## [0.3.5] - 2026-09-22
 
 ### Security
 - **The bot token no longer leaks when a request fails at the transport level (issue #21).**
