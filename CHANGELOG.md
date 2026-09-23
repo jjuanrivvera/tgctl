@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **`tgctl bot set-photo` / `remove-photo` / `photo` (issue #23).** The bot's own profile photo
+  was the one piece of its identity tgctl could not touch: `setMyProfilePhoto` and
+  `removeMyProfilePhoto` were unwrapped, so the only routes were BotFather's `/setuserpic` or
+  pulling the token out of the keyring for curl.
+  - `tgctl bot set-photo --photo logo.jpg` — static .JPG.
+  - `tgctl bot set-photo --animated intro.mp4 [--main-frame-timestamp 1.5]` — MPEG4, choosing
+    the frame Telegram shows as the still image.
+  - `tgctl bot remove-photo` (classified destructive) and `tgctl bot photo`, which asks `getMe`
+    for the bot's own id and reports whether it has a photo.
+
+  A profile photo cannot be reused, so Telegram accepts neither a URL nor a `file_id`: the
+  command says so up front instead of forwarding the value and relaying a 400. The wire shape
+  (an `InputProfilePhoto` object pointing at the upload with `attach://`, and the animated
+  variant naming its field `animation`) is pinned in DECISIONS.md.
+
 ### Security
 - **The bot token no longer leaks when a request fails at the transport level (issue #21).**
   The Bot API carries its credential in the URL path, and Go's `*url.Error` — which

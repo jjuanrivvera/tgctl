@@ -1,5 +1,11 @@
 package commands
 
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
+
 func init() {
 	registerGroup(group{
 		Use:   "bot",
@@ -75,6 +81,33 @@ func init() {
 				},
 			},
 			{
+				Use: "set-photo", Method: "setMyProfilePhoto", Kind: kindWrite,
+				Short: "Set the bot's profile photo",
+				Long: `Set the bot's own profile photo (setMyProfilePhoto).
+
+The photo must be a local file: Telegram does not accept a URL or an existing file_id
+here, because a profile photo cannot be reused. Pass --photo for a static .JPG, or
+--animated for an MPEG4 animation (with --main-frame-timestamp to choose the frame
+Telegram shows as the still image).`,
+				Example: `  tgctl bot set-photo --photo logo.jpg
+  tgctl bot set-photo --animated intro.mp4 --main-frame-timestamp 1.5`,
+				Files: []fileSpec{
+					{Name: "photo", Usage: "local .JPG to use as the static profile photo"},
+					{Name: "animated", Usage: "local MPEG4 to use as an animated profile photo"},
+				},
+				Flags: []flagSpec{
+					{Name: "main-frame-timestamp", Param: "main_frame_timestamp", Kind: flagFloat,
+						Usage: "seconds into --animated for the still frame (default 0.0)"},
+				},
+				PreCall: attachProfilePhoto,
+			},
+			{
+				Use: "remove-photo", Method: "removeMyProfilePhoto", Kind: kindDestructive,
+				Short:   "Remove the bot's profile photo",
+				Long:    "Remove the bot's own profile photo (removeMyProfilePhoto). It cannot be restored except by uploading it again.",
+				Example: `  tgctl bot remove-photo`,
+			},
+			{
 				Use: "close", Method: "close", Kind: kindWrite,
 				Short:   "Close the bot instance before moving it to another server",
 				Long:    "Close the bot instance (frees server resources). Returns an error for the first 10 minutes after the bot launches.",
@@ -87,5 +120,89 @@ func init() {
 				Example: `  tgctl bot logout`,
 			},
 		},
+		Extra: []func() *cobra.Command{newBotPhotoCmd},
 	})
+}
+
+// attachProfilePhoto builds the InputProfilePhoto object setMyProfilePhoto expects. The method
+// takes no plain file field: it takes a JSON object that POINTS at the uploaded bytes with
+// "attach://<part>", so the part and the param that names it have to be built together — the
+// one place in the fleet where a flag does not map 1:1 to a parameter (Bot API 10.3,
+// InputProfilePhotoStatic / InputProfilePhotoAnimated).
+func attachProfilePhoto(_ *cobra.Command, params map[string]any, files map[string]string) error {
+	// The part name is deliberately not "photo": that is the parameter's own name, and two
+	// parts with the same name is not a request Telegram can read.
+	const part = "profile_photo"
+
+	// collectFiles passes a value it could not open as a local file straight through as a
+	// string param — the right default for sendPhoto (a URL or a file_id both work there) and
+	// exactly wrong here, since a profile photo can only ever be a fresh upload.
+	for _, name := range []string{"photo", "animated"} {
+		if v, ok := params[name]; ok {
+			return fmt.Errorf("--%s %v: a profile photo must be an uploadable local file — Telegram accepts no URL or file_id here", name, v)
+		}
+	}
+
+	static, hasStatic := files["photo"]
+	animated, hasAnimated := files["animated"]
+	switch {
+	case hasStatic && hasAnimated:
+		return fmt.Errorf("pass either --photo or --animated, not both")
+	case hasStatic:
+		if _, ok := params["main_frame_timestamp"]; ok {
+			return fmt.Errorf("--main-frame-timestamp applies to --animated, not to a static --photo")
+		}
+		delete(files, "photo")
+		files[part] = static
+		params["photo"] = map[string]any{"type": "static", "photo": "attach://" + part}
+	case hasAnimated:
+		delete(files, "animated")
+		files[part] = animated
+		photo := map[string]any{"type": "animated", "animation": "attach://" + part}
+		if ts, ok := params["main_frame_timestamp"]; ok {
+			photo["main_frame_timestamp"] = ts
+			delete(params, "main_frame_timestamp")
+		}
+		params["photo"] = photo
+	default:
+		return fmt.Errorf("one of --photo <file.jpg> or --animated <file.mp4> is required")
+	}
+	return nil
+}
+
+// newBotPhotoCmd reports whether the bot currently has a profile photo. getUserProfilePhotos
+// needs a user id and the bot's own is not something you type, so this asks getMe first —
+// the same two steps a human would take, in one verb (issue #23).
+func newBotPhotoCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "photo",
+		Short:   "Show the bot's current profile photo(s)",
+		Long:    "Look up the bot's own profile photos: getMe for the bot's id, then getUserProfilePhotos for it.",
+		Example: "  tgctl bot photo\n  tgctl bot photo -o json",
+		Args:    cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			client, err := clientFromCmd(cmd)
+			if err != nil {
+				return err
+			}
+			defer func() { _ = client.Close() }()
+			me, err := client.GetMe(cmd.Context())
+			if err != nil {
+				return err
+			}
+			raw, err := client.Call(cmd.Context(), "getUserProfilePhotos",
+				map[string]any{"user_id": me.ID.String(), "limit": 1}, true)
+			if err != nil {
+				return err
+			}
+			if !cmd.Flags().Changed("columns") {
+				if err := cmd.Flags().Set("columns", "total_count"); err != nil {
+					return err
+				}
+			}
+			return render(cmd, raw)
+		},
+	}
+	markKind(cmd, kindRead)
+	return cmd
 }

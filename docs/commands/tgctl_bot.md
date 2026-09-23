@@ -39,8 +39,11 @@ Read the bot's identity (getMe) and manage its name/description shown in Telegra
 * [tgctl bot get-short-description](tgctl_bot_get-short-description.md)	 - Get the bot's short description
 * [tgctl bot info](tgctl_bot_info.md)	 - Show the authenticated bot's identity (getMe)
 * [tgctl bot logout](tgctl_bot_logout.md)	 - Log out from the cloud Bot API before running a local Bot API server
+* [tgctl bot photo](tgctl_bot_photo.md)	 - Show the bot's current profile photo(s)
+* [tgctl bot remove-photo](tgctl_bot_remove-photo.md)	 - Remove the bot's profile photo
 * [tgctl bot set-admin-rights](tgctl_bot_set-admin-rights.md)	 - Set the bot's default administrator rights (requested when added to a group/channel)
 * [tgctl bot set-description](tgctl_bot_set-description.md)	 - Set the bot's description (shown in the empty chat)
 * [tgctl bot set-name](tgctl_bot_set-name.md)	 - Set the bot's name
+* [tgctl bot set-photo](tgctl_bot_set-photo.md)	 - Set the bot's profile photo
 * [tgctl bot set-short-description](tgctl_bot_set-short-description.md)	 - Set the bot's short description (shown on the profile page)
 

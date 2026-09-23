@@ -96,6 +96,12 @@ type methodCmd struct {
 	// beyond rendering it (recording inbound messages to the local store, issue #5). Extend,
 	// don't fork buildMethodCmd, matching the Extra[] pattern used for hand-written verbs.
 	PostSuccess func(cmd *cobra.Command, raw json.RawMessage)
+	// PreCall, if set, runs after the flags are collected and before the request, and may
+	// rewrite both maps. It is the escape hatch for a method whose wire shape is not
+	// "one flag → one param": setMyProfilePhoto takes an InputProfilePhoto object that
+	// points at the uploaded bytes with attach://, so the file part and the param that
+	// names it have to be built together (issue #23).
+	PreCall func(cmd *cobra.Command, params map[string]any, files map[string]string) error
 }
 
 // group is a noun with its verbs.
@@ -201,6 +207,11 @@ func buildMethodCmd(mc methodCmd) *cobra.Command {
 		files, err := collectFiles(cmd, mc, params)
 		if err != nil {
 			return err
+		}
+		if mc.PreCall != nil {
+			if err := mc.PreCall(cmd, params, files); err != nil {
+				return err
+			}
 		}
 		client, err := clientFromCmd(cmd)
 		if err != nil {

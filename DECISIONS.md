@@ -124,7 +124,8 @@ below its threshold without a recorded waiver.
 moderation, forum-topic management, invite links (incl. subscription links), bot configuration,
 Telegram Stars, chat/user verification, webhooks, updates, files, callbacks, and inline queries.
 
-**coverage-waiver: 80% (109/135). The 26 uncovered methods are five genuinely-niche families
+**coverage-waiver: 82% (112/135, of an 8.3 enumeration — see the profile-photo note below).
+The 26 uncovered methods are five genuinely-niche families
 deferred deliberately, not overlooked** — each is a self-contained sub-API most bots never touch:
 - **stickers-set-management (15)** — createNewStickerSet, addStickerToSet, replaceStickerInSet,
   deleteStickerFromSet, deleteStickerSet, setSticker*, getStickerSet, getCustomEmojiStickers,
@@ -156,3 +157,28 @@ Added following the generic method-command builder (extend, don't fork):
   and paid media.
 - **bot** — short-description get/set, default-admin-rights get/set, close, logout.
 - **invite** — exportChatInviteLink and the subscription-invite-link pair.
+
+## bot profile photo (issues #23/#24)
+
+`setMyProfilePhoto` takes no plain file field: its `photo` parameter is an **InputProfilePhoto
+object** that points at the uploaded bytes with `attach://<part>` (Bot API 10.3 —
+`InputProfilePhotoStatic{type,photo}` and `InputProfilePhotoAnimated{type,animation,
+main_frame_timestamp}`; note the animated variant names the field `animation`, not `photo`).
+Verified against the published method reference, not recall. Consequences pinned here:
+
+- A profile photo **cannot be reused**: Telegram accepts neither a URL nor a `file_id`, only a
+  fresh upload. `bot set-photo` therefore rejects a non-local value up front instead of
+  forwarding it and letting the API answer "photo must be uploaded as a file".
+- The multipart part is named `profile_photo`, never `photo`: `photo` is the parameter's own
+  name and two parts sharing it is not a request Telegram can read.
+- This is the fleet's first method whose wire shape is not "one flag → one param", so the
+  generic builder grew a `PreCall` hook (sibling of `PostSuccess`) rather than a fork.
+- `bot photo` is a convenience over `getUserProfilePhotos`, which `user photos` already wraps;
+  it exists because the bot's own id is not something you type. It adds a manifest verb without
+  adding API coverage.
+- **The completeness baseline is stale**: `api_method_source` enumerates Bot API **8.3**
+  (135 methods) while the published API is **10.3**, so `setMyProfilePhoto` /
+  `removeMyProfilePhoto` are not in the denominator at all and the recorded percentage now
+  slightly overstates coverage. Re-deriving the manifest from a current enumeration is its own
+  job — it will surface the whole 8.3→10.3 method gap and move the waiver line.
+
