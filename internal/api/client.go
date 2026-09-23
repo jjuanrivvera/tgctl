@@ -151,14 +151,19 @@ func (c *Client) Upload(ctx context.Context, method string, params map[string]an
 		if err != nil {
 			return nil, fmt.Errorf("open %s: %w", field, err)
 		}
-		fw, err := mw.CreateFormFile(field, filepath.Base(path))
-		if err != nil {
-			_ = f.Close()
-			return nil, err
-		}
-		if _, err := io.Copy(fw, f); err != nil {
-			_ = f.Close()
-			return nil, err
+		// A dry run still opens the file — "the request I would have sent" is only honest if
+		// the file is really readable — but it does not stream it: buffering a video in
+		// memory to print a curl line and send nothing would be pure waste.
+		if !c.DryRun {
+			fw, err := mw.CreateFormFile(field, filepath.Base(path))
+			if err != nil {
+				_ = f.Close()
+				return nil, err
+			}
+			if _, err := io.Copy(fw, f); err != nil {
+				_ = f.Close()
+				return nil, err
+			}
 		}
 		_ = f.Close()
 		curlParts = append(curlParts, fmt.Sprintf("-F %s=@%s", field, shellQuote(path)))

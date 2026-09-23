@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **`tgctl api` can upload files (issue #24).** The escape hatch only spoke JSON, so every
+  method that *requires* multipart — `setMyProfilePhoto`, `setChatPhoto`, `uploadStickerFile`,
+  `editMessageMedia` with `attach://`, … — was unreachable, and the only way out was to read the
+  token out of the keyring and fall back to curl, which is exactly what tgctl exists to avoid.
+  New repeatable `-F, --file name=@path`: one or more of them switches the request to
+  `multipart/form-data`, sending each file as the part `<name>` while `-d`/`-q` ride along as
+  fields, so a JSON body can point at an upload with `"attach://<name>"`:
+
+  ```
+  tgctl api setMyProfilePhoto -d '{"photo":{"type":"static","photo":"attach://pic"}}' -F pic=@logo.jpg
+  ```
+
+  `--dry-run` prints the equivalent curl with its `-F` parts and the token redacted, and a dry
+  run no longer streams the file into memory just to describe it.
+
 ### Security
 - **The bot token no longer leaks when a request fails at the transport level (issue #21).**
   The Bot API carries its credential in the URL path, and Go's `*url.Error` — which
