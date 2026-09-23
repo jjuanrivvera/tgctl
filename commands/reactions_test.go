@@ -96,3 +96,41 @@ func TestReactionVerbs_AreDestructive(t *testing.T) {
 		assert.True(t, destructive, "%s should be classified destructive", method)
 	}
 }
+
+// A reaction has exactly one author, so naming none or naming two is a question the API was
+// never asked. Answer it locally, with the flag to use, instead of relaying a 400.
+func TestUnreact_RequiresExactlyOneActor(t *testing.T) {
+	srv := newServer(t, routes{
+		"deleteMessageReaction":     `true`,
+		"deleteAllMessageReactions": `true`,
+	})
+
+	cases := []struct {
+		name, wantErr string
+		args          []string
+	}{{
+		name:    "unreact with no actor",
+		args:    []string{"message", "unreact", "--chat", "@g", "--message-id", "1"},
+		wantErr: "one of --user",
+	}, {
+		name:    "unreact with both",
+		args:    []string{"message", "unreact", "--chat", "@g", "--message-id", "1", "--user", "1", "--actor-chat", "-100"},
+		wantErr: "not both",
+	}, {
+		name:    "unreact-all with no actor",
+		args:    []string{"message", "unreact-all", "--chat", "@g"},
+		wantErr: "one of --user",
+	}, {
+		name:    "unreact-all with both",
+		args:    []string{"message", "unreact-all", "--chat", "@g", "--user", "1", "--actor-chat", "-100"},
+		wantErr: "not both",
+	}}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, _, err := run(t, srv, tc.args...)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
+}
