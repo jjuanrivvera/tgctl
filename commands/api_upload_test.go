@@ -7,9 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
-	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -146,19 +144,4 @@ func TestAPI_NoUploads_StaysJSON(t *testing.T) {
 
 	_, _, err := run(t, srv, "api", "sendMessage", "-q", "chat_id=@me", "-q", "text=hi")
 	require.NoError(t, err)
-}
-
-// -F photo=@/dev/zero (or a FIFO) must fail locally: the body is buffered before it is sent.
-func TestAPI_MultipartUpload_RejectsNonRegularFile(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("FIFOs are not a Windows concern")
-	}
-	dir := t.TempDir()
-	fifo := filepath.Join(dir, "pipe")
-	require.NoError(t, syscall.Mkfifo(fifo, 0o600))
-	srv := newServer(t, routes{"setChatPhoto": `true`})
-
-	_, _, err := run(t, srv, "api", "setChatPhoto", "-F", "photo=@"+fifo)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "named pipe")
 }

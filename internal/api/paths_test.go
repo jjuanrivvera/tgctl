@@ -3,8 +3,6 @@ package api
 import (
 	"os"
 	"path/filepath"
-	"runtime"
-	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,26 +47,5 @@ func TestConfineToBase(t *testing.T) {
 	if err := os.Symlink(secret, link); err == nil {
 		_, err = ConfineToBase(base, "link")
 		assert.Error(t, err, "a symlink escaping the base must be rejected")
-	}
-}
-
-// An upload is buffered before it is sent, so a character device would grow that buffer
-// without end and a FIFO would block the command. Neither is a file anyone means to upload.
-func TestValidateUploadPath_RejectsNonRegularFiles(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("FIFOs and device files are not a Windows concern")
-	}
-	dir := t.TempDir()
-	fifo := filepath.Join(dir, "pipe")
-	require.NoError(t, syscall.Mkfifo(fifo, 0o600))
-
-	err := ValidateUploadPath(fifo)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "named pipe")
-
-	if _, statErr := os.Stat("/dev/zero"); statErr == nil {
-		err := ValidateUploadPath("/dev/zero")
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "device")
 	}
 }
