@@ -1,5 +1,11 @@
 package commands
 
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
+
 func init() {
 	registerGroup(group{
 		Use:     "message",
@@ -100,6 +106,42 @@ func init() {
 					{Name: "reaction", Kind: flagJSON, Usage: "JSON array of ReactionType objects (omit to clear)"},
 					{Name: "is-big", Param: "is_big", Kind: flagBool, Usage: "show the reaction with a big animation"},
 				},
+			},
+			{
+				Use: "unreact", Method: "deleteMessageReaction", Kind: kindDestructive,
+				Short: "Remove someone's reaction from a message",
+				Long: `Remove a reaction another member left on a message (deleteMessageReaction).
+
+This is moderation, not the inverse of ` + "`message react`" + `: it removes a reaction somebody
+else added, so the bot needs the can_delete_messages right in the group. To clear the bot's
+own reactions, call ` + "`message react`" + ` without --reaction.
+
+Name whose reaction to remove with --user, or --actor-chat when it was left on behalf of a
+channel.`,
+				Example: `  tgctl message unreact --chat @group --message-id 42 --user 12345
+  tgctl message unreact --chat @group --message-id 42 --actor-chat -1001234567890`,
+				Flags: []flagSpec{
+					chatFlag(),
+					messageIDFlag(),
+					optUserFlag(),
+					actorChatFlag(),
+				},
+				PreCall: requireOneReactionActor,
+			},
+			{
+				Use: "unreact-all", Method: "deleteAllMessageReactions", Kind: kindDestructive,
+				Short: "Remove every recent reaction one member left in a chat",
+				Long: `Remove up to 10000 recent reactions left in a group by one user or channel
+(deleteAllMessageReactions). It sweeps the chat, not a single message, so it takes no
+--message-id; the bot needs the can_delete_messages right.`,
+				Example: `  tgctl message unreact-all --chat @group --user 12345
+  tgctl message unreact-all --chat @group --actor-chat -1001234567890`,
+				Flags: []flagSpec{
+					chatFlag(),
+					optUserFlag(),
+					actorChatFlag(),
+				},
+				PreCall: requireOneReactionActor,
 			},
 			{
 				Use: "location", Method: "sendLocation", Kind: kindWrite,
@@ -302,6 +344,29 @@ func chatFlag() flagSpec {
 // --chat/--message-id (a chat message) or --inline-message-id (an inline message).
 func optChatFlag() flagSpec {
 	return flagSpec{Name: "chat", Param: "chat_id", Usage: "target chat: numeric id or @username (with --message-id)"}
+}
+
+// requireOneReactionActor rejects a reaction-removal call that names no actor or names two.
+// Both parameters are optional in the API because a reaction comes EITHER from a user or from
+// a channel, and the method identifies which by the one that is present — so "neither" and
+// "both" are questions Telegram was never asked. Answering locally costs a round trip and
+// says which flag to pass, instead of relaying a 400.
+func requireOneReactionActor(_ *cobra.Command, params map[string]any, _ map[string]string) error {
+	_, hasUser := params["user_id"]
+	_, hasActorChat := params["actor_chat_id"]
+	switch {
+	case hasUser && hasActorChat:
+		return fmt.Errorf("pass either --user or --actor-chat, not both: a reaction has one author")
+	case !hasUser && !hasActorChat:
+		return fmt.Errorf("one of --user (a person's reaction) or --actor-chat (a channel's) is required")
+	}
+	return nil
+}
+
+// actorChatFlag names a channel acting on its own behalf — the counterpart to --user for the
+// reaction-removal verbs, where the reaction may have come from a chat rather than a person.
+func actorChatFlag() flagSpec {
+	return flagSpec{Name: "actor-chat", Param: "actor_chat_id", Kind: flagInt, Usage: "id of the channel whose reaction to remove (instead of --user)"}
 }
 
 func messageIDFlag() flagSpec {

@@ -136,3 +136,9 @@ func init() {
 func userFlag() flagSpec {
 	return flagSpec{Name: "user", Param: "user_id", Kind: flagInt, Required: true, Usage: "target user id"}
 }
+
+// optUserFlag is userFlag without Required — for methods where the actor is either a user or
+// a channel (--actor-chat), so neither can be mandatory on its own.
+func optUserFlag() flagSpec {
+	return flagSpec{Name: "user", Param: "user_id", Kind: flagInt, Usage: "id of the user to act on (instead of --actor-chat)"}
+}

@@ -54,5 +54,7 @@ Send, edit, delete, forward, copy, and pin messages. --chat accepts a numeric id
 * [tgctl message stop-live-location](tgctl_message_stop-live-location.md)	 - Stop updating a live location before its period expires
 * [tgctl message stop-poll](tgctl_message_stop-poll.md)	 - Stop a poll and return its final results
 * [tgctl message unpin](tgctl_message_unpin.md)	 - Unpin a message (or the most recent pin) in a chat
+* [tgctl message unreact](tgctl_message_unreact.md)	 - Remove someone's reaction from a message
+* [tgctl message unreact-all](tgctl_message_unreact-all.md)	 - Remove every recent reaction one member left in a chat
 * [tgctl message venue](tgctl_message_venue.md)	 - Send information about a venue
 
