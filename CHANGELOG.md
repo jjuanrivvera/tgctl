@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Reaction moderation and member tags (issue #29, first batch).** Three methods the Bot API
+  gained after the manifest's old baseline, all small additions to groups that already existed:
+  - `tgctl message unreact --chat … --message-id … --user …` (`deleteMessageReaction`) removes a
+    reaction somebody *else* left. It is moderation, not the inverse of `message react` — that
+    one clears the bot's own reactions by omitting `--reaction` — so it needs the
+    `can_delete_messages` right. `--actor-chat` names a channel that reacted on its own behalf.
+  - `tgctl message unreact-all --chat … --user …` (`deleteAllMessageReactions`) sweeps up to
+    10000 of one actor's recent reactions across a chat. It deliberately takes no
+    `--message-id`: it is about an actor, not a message.
+  - `tgctl member set-tag --chat … --user … [--tag …]` (`setChatMemberTag`) sets the tag shown
+    beside a regular member's name; omit `--tag` to clear it. Needs `can_manage_tags`.
+
+  Both reaction verbs are classified **destructive**, so the agent guard and the MCP server
+  gate them like any other delete.
+
 ## [0.4.0] - 2026-09-23
 
 ### Added

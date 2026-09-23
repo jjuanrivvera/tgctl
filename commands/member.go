@@ -62,6 +62,18 @@ func init() {
 				},
 			},
 			{
+				Use: "set-tag", Method: "setChatMemberTag", Kind: kindWrite,
+				Short: "Set (or clear) a regular member's tag",
+				Long: `Set the tag shown next to a regular member's name in a group (setChatMemberTag).
+The bot must be an administrator with the can_manage_tags right. Omit --tag to clear it.`,
+				Example: `  tgctl member set-tag --chat @group --user 12345 --tag "Moderator"
+  tgctl member set-tag --chat @group --user 12345   # clear the tag`,
+				Flags: []flagSpec{
+					chatFlag(), userFlag(),
+					{Name: "tag", Usage: "new tag (0-16 chars, no emoji; omit to clear)"},
+				},
+			},
+			{
 				Use: "approve-join", Method: "approveChatJoinRequest", Kind: kindWrite,
 				Short:   "Approve a chat join request",
 				Example: `  tgctl member approve-join --chat @group --user 12345`,
