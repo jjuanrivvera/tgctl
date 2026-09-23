@@ -9,8 +9,13 @@ import (
 
 // ValidateUploadPath checks a user-supplied upload path (a `--photo`/`--document` flag the
 // user typed explicitly). The user choosing an absolute path is legitimate, so we do NOT
-// confine it — we only confirm it exists and is a regular file, to fail fast with a clear
+// confine it — we only confirm it exists and is a REGULAR file, to fail fast with a clear
 // message instead of streaming a directory or a missing file to the API.
+//
+// "Regular" is the load-bearing word: an upload is buffered before it is sent, so a character
+// device (`-F photo=@/dev/zero`) would grow that buffer until the process dies, and a FIFO
+// would block the command before it ever made a request. Neither is a file anyone means to
+// upload.
 func ValidateUploadPath(p string) error {
 	if p == "" {
 		return fmt.Errorf("empty file path")
@@ -19,10 +24,25 @@ func ValidateUploadPath(p string) error {
 	if err != nil {
 		return fmt.Errorf("file not readable: %w", err)
 	}
-	if info.IsDir() {
-		return fmt.Errorf("%s is a directory, not a file", p)
+	return checkRegular(p, info)
+}
+
+// checkRegular names what the path actually is, so the message says why it was refused.
+func checkRegular(p string, info os.FileInfo) error {
+	if info.Mode().IsRegular() {
+		return nil
 	}
-	return nil
+	switch {
+	case info.IsDir():
+		return fmt.Errorf("%s is a directory, not a file", p)
+	case info.Mode()&os.ModeNamedPipe != 0:
+		return fmt.Errorf("%s is a named pipe, not a file (an upload needs a file it can size and re-read)", p)
+	case info.Mode()&os.ModeDevice != 0:
+		return fmt.Errorf("%s is a device, not a file", p)
+	case info.Mode()&os.ModeSocket != 0:
+		return fmt.Errorf("%s is a socket, not a file", p)
+	}
+	return fmt.Errorf("%s is not a regular file (mode %s)", p, info.Mode())
 }
 
 // ConfineToBase resolves a path that originated from DATA (e.g. a path referenced inside a
