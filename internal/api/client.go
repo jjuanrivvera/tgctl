@@ -80,6 +80,17 @@ func WithRecorder(r Recorder) Option { return func(c *Client) { c.recorder = r }
 // BaseURL returns the configured base URL.
 func (c *Client) BaseURL() string { return c.baseURL }
 
+// BotID returns the bot's own numeric user id, taken from the non-secret prefix of the bot
+// token ("<bot_id>:<hash>"). It costs no request, which is what makes it usable in a dry run —
+// a getMe there returns a zero-valued User, so anything built from its id would be empty.
+// Returns "" for an authenticator that is not a bot token.
+func (c *Client) BotID() string {
+	if a, ok := c.auth.(*BotTokenAuth); ok {
+		return a.BotID()
+	}
+	return ""
+}
+
 // Close releases resources an attached Recorder holds — e.g. the local message store's SQLite
 // file handle (issue #5) — by closing it if it implements io.Closer. A Client with no recorder,
 // or a recorder that isn't a Closer, makes this a no-op, so every clientFromCmd caller can defer

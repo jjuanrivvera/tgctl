@@ -36,3 +36,10 @@ func TestClient_BaseURLAndOptions(t *testing.T) {
 	assert.Equal(t, "https://example.com", c.BaseURL())
 	assert.True(t, c.Verbose)
 }
+
+func TestClient_BotID(t *testing.T) {
+	a, _ := NewBotTokenAuth("123456:AAFfakeFAKEfakeFAKEfakeFAKEfake-01")
+	assert.Equal(t, "123456", New(a).BotID())
+	// An authenticator that is not a bot token has no id to offer.
+	assert.Empty(t, New(stubAuth{}).BotID())
+}
