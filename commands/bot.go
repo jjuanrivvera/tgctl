@@ -171,13 +171,16 @@ func attachProfilePhoto(_ *cobra.Command, params map[string]any, files map[strin
 }
 
 // newBotPhotoCmd reports whether the bot currently has a profile photo. getUserProfilePhotos
-// needs a user id and the bot's own is not something you type, so this asks getMe first —
-// the same two steps a human would take, in one verb (issue #23).
+// needs a user id and the bot's own is not something you type, so this fills it in (issue #23).
+//
+// The id comes from the token's non-secret prefix rather than from getMe: it costs no request,
+// and it is the only source that works under --dry-run, where a call returns nothing and a
+// getMe would hand back a zero-valued User whose empty id would print an invalid curl.
 func newBotPhotoCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "photo",
 		Short:   "Show the bot's current profile photo(s)",
-		Long:    "Look up the bot's own profile photos: getMe for the bot's id, then getUserProfilePhotos for it.",
+		Long:    "Look up the bot's own profile photos (getUserProfilePhotos for the bot's own id).",
 		Example: "  tgctl bot photo\n  tgctl bot photo -o json",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -186,12 +189,20 @@ func newBotPhotoCmd() *cobra.Command {
 				return err
 			}
 			defer func() { _ = client.Close() }()
-			me, err := client.GetMe(cmd.Context())
-			if err != nil {
-				return err
+			userID := client.BotID()
+			if userID == "" {
+				// Not a bot token (a custom authenticator): fall back to asking the API,
+				// which is correct everywhere except a dry run, where there is no answer.
+				me, err := client.GetMe(cmd.Context())
+				if err != nil {
+					return err
+				}
+				if userID = me.ID.String(); userID == "" {
+					return fmt.Errorf("cannot determine the bot's own id")
+				}
 			}
 			raw, err := client.Call(cmd.Context(), "getUserProfilePhotos",
-				map[string]any{"user_id": me.ID.String(), "limit": 1}, true)
+				map[string]any{"user_id": userID, "limit": 1}, true)
 			if err != nil {
 				return err
 			}

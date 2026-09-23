@@ -4,7 +4,7 @@ Show the bot's current profile photo(s)
 
 ### Synopsis
 
-Look up the bot's own profile photos: getMe for the bot's id, then getUserProfilePhotos for it.
+Look up the bot's own profile photos (getUserProfilePhotos for the bot's own id).
 
 ```
 tgctl bot photo [flags]

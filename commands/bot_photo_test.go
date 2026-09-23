@@ -154,36 +154,45 @@ func TestBotRemovePhoto(t *testing.T) {
 	assert.Contains(t, out, "true")
 }
 
-// bot photo asks getMe for the bot's own id, then getUserProfilePhotos for it.
-func TestBotPhoto_LooksUpOwnID(t *testing.T) {
+// bot photo fills in the bot's own id from the token prefix — one request, no getMe.
+func TestBotPhoto_UsesOwnIDFromToken(t *testing.T) {
 	var gotUserID string
+	var calls []string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls = append(calls, r.URL.Path[strings.LastIndex(r.URL.Path, "/")+1:])
 		w.Header().Set("Content-Type", "application/json")
-		switch {
-		case strings.HasSuffix(r.URL.Path, "/getMe"):
-			_, _ = w.Write([]byte(`{"ok":true,"result":{"id":123456,"is_bot":true,"username":"testbot"}}`))
-		case strings.HasSuffix(r.URL.Path, "/getUserProfilePhotos"):
-			var body map[string]any
-			require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
-			gotUserID, _ = body["user_id"].(string)
-			_, _ = w.Write([]byte(`{"ok":true,"result":{"total_count":1,"photos":[[]]}}`))
-		default:
-			t.Errorf("unexpected call to %s", r.URL.Path)
-		}
+		var body map[string]any
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		gotUserID, _ = body["user_id"].(string)
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"total_count":1,"photos":[[]]}}`))
 	}))
 	t.Cleanup(srv.Close)
 
 	out, _, err := run(t, srv, "bot", "photo")
 	require.NoError(t, err)
-	assert.Equal(t, "123456", gotUserID, "the bot's own id must come from getMe")
+	// The harness authenticates as 123456:TESTHASHVALUE, so 123456 is the bot's own id.
+	assert.Equal(t, "123456", gotUserID)
+	assert.Equal(t, []string{"getUserProfilePhotos"}, calls, "no getMe round-trip is needed")
 	assert.Contains(t, out, "1", "total_count is rendered")
 }
 
+// A dry run has no answers to work with, so an id derived from a call would be empty and the
+// printed curl a lie. The token prefix keeps it honest.
+func TestBotPhoto_DryRunCarriesTheRealID(t *testing.T) {
+	var hits int
+	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { hits++ }))
+	t.Cleanup(srv.Close)
+
+	_, stderr, err := run(t, srv, "bot", "photo", "--dry-run")
+	require.NoError(t, err)
+	assert.Equal(t, 0, hits)
+	assert.Contains(t, stderr, `"user_id":"123456"`)
+	assert.NotContains(t, stderr, `"user_id":""`)
+	assert.Contains(t, stderr, "<redacted>")
+}
+
 func TestBotPhoto_JSON(t *testing.T) {
-	srv := newServer(t, routes{
-		"getMe":                `{"id":7,"is_bot":true,"username":"b"}`,
-		"getUserProfilePhotos": `{"total_count":0,"photos":[]}`,
-	})
+	srv := newServer(t, routes{"getUserProfilePhotos": `{"total_count":0,"photos":[]}`})
 	out, _, err := run(t, srv, "bot", "photo", "-o", "json")
 	require.NoError(t, err)
 	assert.Contains(t, out, `"total_count": 0`)

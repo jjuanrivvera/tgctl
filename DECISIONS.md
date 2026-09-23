@@ -124,7 +124,7 @@ below its threshold without a recorded waiver.
 moderation, forum-topic management, invite links (incl. subscription links), bot configuration,
 Telegram Stars, chat/user verification, webhooks, updates, files, callbacks, and inline queries.
 
-**coverage-waiver: 82% (112/135, of an 8.3 enumeration — see the profile-photo note below).
+**coverage-waiver: 82% (111/135, of an 8.3 enumeration — see the profile-photo note below).
 The 26 uncovered methods are five genuinely-niche families
 deferred deliberately, not overlooked** — each is a self-contained sub-API most bots never touch:
 - **stickers-set-management (15)** — createNewStickerSet, addStickerToSet, replaceStickerInSet,
@@ -174,8 +174,11 @@ Verified against the published method reference, not recall. Consequences pinned
 - This is the fleet's first method whose wire shape is not "one flag → one param", so the
   generic builder grew a `PreCall` hook (sibling of `PostSuccess`) rather than a fork.
 - `bot photo` is a convenience over `getUserProfilePhotos`, which `user photos` already wraps;
-  it exists because the bot's own id is not something you type. It adds a manifest verb without
-  adding API coverage.
+  it exists because the bot's own id is not something you type. It is deliberately **not** a
+  manifest verb: the manifest measures API coverage, and listing the same method twice would
+  inflate the numerator by a command that wraps nothing new. It takes the id from the token's
+  non-secret prefix rather than from `getMe` — no extra request, and the only source that
+  survives `--dry-run`, where a call returns nothing and `getMe` yields a zero-valued User.
 - **The completeness baseline is stale**: `api_method_source` enumerates Bot API **8.3**
   (135 methods) while the published API is **10.3**, so `setMyProfilePhoto` /
   `removeMyProfilePhoto` are not in the denominator at all and the recorded percentage now

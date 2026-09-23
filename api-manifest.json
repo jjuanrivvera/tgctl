@@ -21,7 +21,6 @@
         "get-admin-rights",
         "set-photo",
         "remove-photo",
-        "photo",
         "close",
         "logout"
       ],
