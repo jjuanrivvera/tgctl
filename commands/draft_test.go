@@ -64,3 +64,19 @@ func TestInlineAnswerGuest_RejectsInvalidJSON(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "valid JSON")
 }
+
+// `inline answer` takes an array of results and `answer-guest` takes one object. Pasting the
+// array over here is the obvious slip between neighbours, and JSON validity alone lets it
+// through — so the check is on the shape, not just the syntax.
+func TestInlineAnswerGuest_RejectsAnArray(t *testing.T) {
+	srv := newServer(t, routes{"answerGuestQuery": `{}`})
+
+	_, _, err := run(t, srv, "inline", "answer-guest", "--query-id", "AAxx",
+		"--result", `[{"type":"article","id":"1","title":"Hi"}]`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not an array")
+
+	_, _, err = run(t, srv, "inline", "answer-guest", "--query-id", "AAxx", "--result", "null")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "got null")
+}
