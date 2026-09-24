@@ -21,6 +21,13 @@ All notable changes to this project are documented here. The format is based on
 
   Both reaction verbs are classified **destructive**, so the agent guard and the MCP server
   gate them like any other delete.
+- **Three more from the same batch**: `tgctl user audios` (`getUserProfileAudios`, the twin of
+  `user photos`), `tgctl user chat-messages` (`getUserPersonalChatMessages` — the last messages
+  on the chat a user pinned to their profile; `--limit` is required and capped at 20 by the
+  API), and `tgctl member answer-join-query` (`answerChatJoinRequestQuery`, the Mini App path
+  for a join request, as opposed to `approve-join`/`decline-join` which act on a chat and user
+  directly). `--result` accepts only `approve`, `decline` or `queue`, checked before the
+  request: in a join flow somebody is waiting on the other side of a typo.
 
 ## [0.4.0] - 2026-09-23
 

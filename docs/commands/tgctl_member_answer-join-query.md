@@ -1,15 +1,32 @@
-## tgctl user
+## tgctl member answer-join-query
 
-Read user information
+Answer a join-request query from a Mini App flow
 
 ### Synopsis
 
-Inspect a user's public data: profile photos and audios, and the last messages on their personal chat.
+Resolve a chat-join-request query (answerChatJoinRequestQuery).
+
+This is the Mini App path, not the plain one: it answers a QUERY the bot received, identified
+by its id, where `member approve-join` / `decline-join` act on a chat and a user
+directly. --result takes approve, decline, or queue to leave the decision to another admin.
+
+```
+tgctl member answer-join-query [flags]
+```
+
+### Examples
+
+```
+  tgctl member answer-join-query --query-id AAxx... --result approve
+  tgctl member answer-join-query --query-id AAxx... --result queue
+```
 
 ### Options
 
 ```
-  -h, --help   help for user
+  -h, --help              help for answer-join-query
+      --query-id string   id of the join-request query being answered
+      --result string     approve | decline | queue
 ```
 
 ### Options inherited from parent commands
@@ -31,8 +48,5 @@ Inspect a user's public data: profile photos and audios, and the last messages o
 
 ### SEE ALSO
 
-* [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
-* [tgctl user audios](tgctl_user_audios.md)	 - List a user's profile audios
-* [tgctl user chat-messages](tgctl_user_chat-messages.md)	 - Read the last messages on a user's personal chat
-* [tgctl user photos](tgctl_user_photos.md)	 - List a user's profile photos
+* [tgctl member](tgctl_member.md)	 - Moderate chat members (ban, restrict, promote)
 

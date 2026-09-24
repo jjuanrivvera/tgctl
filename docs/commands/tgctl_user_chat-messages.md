@@ -1,15 +1,29 @@
-## tgctl user
+## tgctl user chat-messages
 
-Read user information
+Read the last messages on a user's personal chat
 
 ### Synopsis
 
-Inspect a user's public data: profile photos and audios, and the last messages on their personal chat.
+Read the most recent messages from the chat a user has pinned to their profile
+(getUserPersonalChatMessages). --limit is required by the API and capped at 20.
+
+```
+tgctl user chat-messages [flags]
+```
+
+### Examples
+
+```
+  tgctl user chat-messages --user 12345 --limit 5
+  tgctl user chat-messages --user 12345 --limit 20 -o json
+```
 
 ### Options
 
 ```
-  -h, --help   help for user
+  -h, --help        help for chat-messages
+      --limit int   how many messages to return (1-20)
+      --user int    target user id
 ```
 
 ### Options inherited from parent commands
@@ -31,8 +45,5 @@ Inspect a user's public data: profile photos and audios, and the last messages o
 
 ### SEE ALSO
 
-* [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
-* [tgctl user audios](tgctl_user_audios.md)	 - List a user's profile audios
-* [tgctl user chat-messages](tgctl_user_chat-messages.md)	 - Read the last messages on a user's personal chat
-* [tgctl user photos](tgctl_user_photos.md)	 - List a user's profile photos
+* [tgctl user](tgctl_user.md)	 - Read user information
 

@@ -32,6 +32,7 @@ Administrative actions on members. The bot must be an admin with the relevant ri
 ### SEE ALSO
 
 * [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
+* [tgctl member answer-join-query](tgctl_member_answer-join-query.md)	 - Answer a join-request query from a Mini App flow
 * [tgctl member approve-join](tgctl_member_approve-join.md)	 - Approve a chat join request
 * [tgctl member ban](tgctl_member_ban.md)	 - Ban a user from a chat
 * [tgctl member ban-sender](tgctl_member_ban-sender.md)	 - Ban a channel from posting as itself in a chat

@@ -120,6 +120,7 @@
         "set-tag",
         "approve-join",
         "decline-join",
+        "answer-join-query",
         "ban-sender",
         "unban-sender"
       ],
@@ -195,7 +196,9 @@
     {
       "name": "user",
       "verbs": [
-        "photos"
+        "photos",
+        "audios",
+        "chat-messages"
       ],
       "read_only": true,
       "key_fields": [
