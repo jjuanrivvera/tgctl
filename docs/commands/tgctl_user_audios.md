@@ -1,15 +1,25 @@
-## tgctl user
+## tgctl user audios
 
-Read user information
+List a user's profile audios
 
-### Synopsis
+```
+tgctl user audios [flags]
+```
 
-Inspect a user's public data: profile photos and audios, and the last messages on their personal chat.
+### Examples
+
+```
+  tgctl user audios --user 12345
+  tgctl user audios --user 12345 --limit 1 -o json
+```
 
 ### Options
 
 ```
-  -h, --help   help for user
+  -h, --help         help for audios
+      --limit int    max audios to return (1-100)
+      --offset int   number of audios to skip
+      --user int     target user id
 ```
 
 ### Options inherited from parent commands
@@ -31,8 +41,5 @@ Inspect a user's public data: profile photos and audios, and the last messages o
 
 ### SEE ALSO
 
-* [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
-* [tgctl user audios](tgctl_user_audios.md)	 - List a user's profile audios
-* [tgctl user chat-messages](tgctl_user_chat-messages.md)	 - Read the last messages on a user's personal chat
-* [tgctl user photos](tgctl_user_photos.md)	 - List a user's profile photos
+* [tgctl user](tgctl_user.md)	 - Read user information
 

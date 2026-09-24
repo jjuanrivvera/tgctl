@@ -146,6 +146,22 @@ func (a apiCmdInfo) AllPaths() []string {
 	return append([]string{a.Path}, a.aliasPaths...)
 }
 
+// rangeCheck builds a PreCall that rejects a numeric flag outside the range the API documents.
+// The API would reject it too, one round trip later and in its own words; saying it here names
+// the flag the user typed and the range they are allowed.
+func rangeCheck(flag, param string, low, high int64) func(*cobra.Command, map[string]any, map[string]string) error {
+	return func(_ *cobra.Command, params map[string]any, _ map[string]string) error {
+		v, ok := params[param].(int64)
+		if !ok {
+			return nil // not set: the API's own default applies
+		}
+		if v < low || v > high {
+			return fmt.Errorf("--%s must be between %d and %d, got %d", flag, low, high, v)
+		}
+		return nil
+	}
+}
+
 // registerGroup adds a group's commands to the root tree and the classification registry.
 func registerGroup(g group) {
 	groupNames := append([]string{g.Use}, g.Aliases...)

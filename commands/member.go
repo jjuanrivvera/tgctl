@@ -1,5 +1,11 @@
 package commands
 
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
+
 func init() {
 	registerGroup(group{
 		Use:   "member",
@@ -80,6 +86,22 @@ The bot must be an administrator with the can_manage_tags right. Omit --tag to c
 				Flags:   []flagSpec{chatFlag(), userFlag()},
 			},
 			{
+				Use: "answer-join-query", Method: "answerChatJoinRequestQuery", Kind: kindWrite,
+				Short: "Answer a join-request query from a Mini App flow",
+				Long: `Resolve a chat-join-request query (answerChatJoinRequestQuery).
+
+This is the Mini App path, not the plain one: it answers a QUERY the bot received, identified
+by its id, where ` + "`member approve-join` / `decline-join`" + ` act on a chat and a user
+directly. --result takes approve, decline, or queue to leave the decision to another admin.`,
+				Example: `  tgctl member answer-join-query --query-id AAxx... --result approve
+  tgctl member answer-join-query --query-id AAxx... --result queue`,
+				Flags: []flagSpec{
+					{Name: "query-id", Param: "chat_join_request_query_id", Required: true, Usage: "id of the join-request query being answered"},
+					{Name: "result", Required: true, Usage: "approve | decline | queue"},
+				},
+				PreCall: requireJoinQueryResult,
+			},
+			{
 				Use: "decline-join", Method: "declineChatJoinRequest", Kind: kindWrite,
 				Short:   "Decline a chat join request",
 				Example: `  tgctl member decline-join --chat @group --user 12345`,
@@ -105,4 +127,17 @@ The bot must be an administrator with the can_manage_tags right. Omit --tag to c
 			},
 		},
 	})
+}
+
+// requireJoinQueryResult rejects a --result the API does not define. The three words are the
+// whole vocabulary of the parameter, and a typo would otherwise cost a round trip to be told
+// so by Telegram, in a chat-join flow where the user is waiting on the other side.
+func requireJoinQueryResult(_ *cobra.Command, params map[string]any, _ map[string]string) error {
+	result, _ := params["result"].(string)
+	switch result {
+	case "approve", "decline", "queue":
+		return nil
+	default:
+		return fmt.Errorf("--result %q is not one of approve, decline or queue", result)
+	}
 }
