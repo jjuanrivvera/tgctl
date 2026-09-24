@@ -66,3 +66,23 @@ func TestMemberAnswerJoinQuery_RejectsUnknownResult(t *testing.T) {
 		})
 	}
 }
+
+// The API caps this one at 20, so a larger value is a mistake worth catching here: the round
+// trip would otherwise come back in Telegram's words, naming neither the flag nor the range.
+func TestUserChatMessages_LimitRange(t *testing.T) {
+	srv := newServer(t, routes{"getUserPersonalChatMessages": `[]`})
+
+	for _, bad := range []string{"0", "21", "-3"} {
+		t.Run("limit="+bad, func(t *testing.T) {
+			_, _, err := run(t, srv, "user", "chat-messages", "--user", "1", "--limit", bad)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "between 1 and 20")
+		})
+	}
+	for _, ok := range []string{"1", "20"} {
+		t.Run("limit="+ok, func(t *testing.T) {
+			_, _, err := run(t, srv, "user", "chat-messages", "--user", "1", "--limit", ok)
+			require.NoError(t, err)
+		})
+	}
+}

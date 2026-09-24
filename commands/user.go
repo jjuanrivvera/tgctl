@@ -41,6 +41,7 @@ func init() {
 					userFlag(),
 					{Name: "limit", Kind: flagInt, Required: true, Usage: "how many messages to return (1-20)"},
 				},
+				PreCall: rangeCheck("limit", "limit", 1, 20),
 				Columns: []string{"message_id", "date", "text"},
 			},
 		},
