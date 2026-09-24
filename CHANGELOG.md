@@ -28,6 +28,13 @@ All notable changes to this project are documented here. The format is based on
   for a join request, as opposed to `approve-join`/`decline-join` which act on a chat and user
   directly). `--result` accepts only `approve`, `decline` or `queue`, checked before the
   request: in a join flow somebody is waiting on the other side of a typo.
+- **And two more**: `tgctl message draft` (`sendMessageDraft`) streams a partial message while
+  the real one is still being written — the "typing out an answer" effect for a private chat.
+  The draft is ephemeral, so the help says outright that you still have to `message send` the
+  final text for it to exist in the chat; reusing `--draft-id` animates the change and an empty
+  `--text` shows the "Thinking…" placeholder. `tgctl inline answer-guest` (`answerGuestQuery`)
+  replies to a guest message with a **single** result object, as opposed to the array
+  `inline answer` takes.
 
 ## [0.4.0] - 2026-09-23
 

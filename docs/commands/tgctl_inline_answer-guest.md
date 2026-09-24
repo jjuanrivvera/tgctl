@@ -1,32 +1,30 @@
-## tgctl inline answer
+## tgctl inline answer-guest
 
-Answer an inline query with results
+Reply to a guest message with a single result
 
 ### Synopsis
 
-Answer an inline query. --results is a JSON array of InlineQueryResult objects.
+Reply to a guest message (answerGuestQuery).
+
+Unlike `inline answer`, which returns a LIST the user picks from, this sends ONE
+result as the reply: --result is a single InlineQueryResult object, not an array.
 
 ```
-tgctl inline answer [flags]
+tgctl inline answer-guest [flags]
 ```
 
 ### Examples
 
 ```
-  tgctl inline answer --inline-query-id 999 \
-    --results '[{"type":"article","id":"1","title":"Hi","input_message_content":{"message_text":"Hi"}}]'
+  tgctl inline answer-guest --query-id AAxx     --result '{"type":"article","id":"1","title":"Hi","input_message_content":{"message_text":"Hi"}}'
 ```
 
 ### Options
 
 ```
-      --button string            InlineQueryResultsButton object as JSON
-      --cache-time int           seconds the result may be cached server-side
-  -h, --help                     help for answer
-      --inline-query-id string   id of the inline query to answer
-      --is-personal              cache results per-user instead of globally
-      --next-offset string       offset a client sends to request the next page
-      --results string           JSON array of InlineQueryResult objects (max 50)
+  -h, --help              help for answer-guest
+      --query-id string   id of the guest query to answer
+      --result string     a single InlineQueryResult object as JSON
 ```
 
 ### Options inherited from parent commands

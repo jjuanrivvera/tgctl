@@ -53,7 +53,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl file](tgctl_file.md)	 - Inspect and download files
 * [tgctl forum](tgctl_forum.md)	 - Manage forum topics in supergroups
 * [tgctl init](tgctl_init.md)	 - First-run wizard: pick a base URL, capture a token, and smoke-test
-* [tgctl inline](tgctl_inline.md)	 - Answer inline queries
+* [tgctl inline](tgctl_inline.md)	 - Answer inline and guest queries
 * [tgctl invite](tgctl_invite.md)	 - Manage chat invite links
 * [tgctl log](tgctl_log.md)	 - Query tgctl's local send/receive history
 * [tgctl mcp](tgctl_mcp.md)	 - MCP server management

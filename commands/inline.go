@@ -1,10 +1,16 @@
 package commands
 
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
+
 func init() {
 	registerGroup(group{
 		Use:   "inline",
-		Short: "Answer inline queries",
-		Long:  "Respond to an inline query (a user typing @yourbot ...) with a list of results (answerInlineQuery).",
+		Short: "Answer inline and guest queries",
+		Long:  "Respond to an inline query (a user typing @yourbot ...) with a list of results, or to a guest message with a single result.",
 		Cmds: []methodCmd{
 			{
 				Use: "answer", Method: "answerInlineQuery", Kind: kindWrite,
@@ -21,6 +27,36 @@ func init() {
 					{Name: "button", Kind: flagJSON, Usage: "InlineQueryResultsButton object as JSON"},
 				},
 			},
+			{
+				Use: "answer-guest", Method: "answerGuestQuery", Kind: kindWrite,
+				Short: "Reply to a guest message with a single result",
+				Long: `Reply to a guest message (answerGuestQuery).
+
+Unlike ` + "`inline answer`" + `, which returns a LIST the user picks from, this sends ONE
+result as the reply: --result is a single InlineQueryResult object, not an array.`,
+				Example: `  tgctl inline answer-guest --query-id AAxx     --result '{"type":"article","id":"1","title":"Hi","input_message_content":{"message_text":"Hi"}}'`,
+				Flags: []flagSpec{
+					{Name: "query-id", Param: "guest_query_id", Required: true, Usage: "id of the guest query to answer"},
+					{Name: "result", Kind: flagJSON, Required: true, Usage: "a single InlineQueryResult object as JSON"},
+				},
+				PreCall: requireResultObject,
+			},
 		},
 	})
+}
+
+// requireResultObject rejects a --result that parsed as valid JSON but is not a single object.
+// The neighbouring `inline answer` takes an ARRAY of results, so pasting one over here is the
+// obvious slip, and JSON validity alone would let it through to fail at Telegram.
+func requireResultObject(_ *cobra.Command, params map[string]any, _ map[string]string) error {
+	switch v := params["result"].(type) {
+	case map[string]any:
+		return nil
+	case []any:
+		return fmt.Errorf("--result takes ONE InlineQueryResult object, not an array (that is `inline answer`)")
+	case nil:
+		return fmt.Errorf("--result must be an InlineQueryResult object, got null")
+	default:
+		return fmt.Errorf("--result must be an InlineQueryResult object, got %T", v)
+	}
 }
