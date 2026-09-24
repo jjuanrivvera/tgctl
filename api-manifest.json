@@ -34,6 +34,7 @@
       "name": "message",
       "verbs": [
         "send",
+        "draft",
         "edit",
         "delete",
         "forward",
@@ -228,7 +229,8 @@
     {
       "name": "inline",
       "verbs": [
-        "answer"
+        "answer",
+        "answer-guest"
       ],
       "key_fields": [
         "inline_query_id"

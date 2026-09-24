@@ -108,6 +108,30 @@ func init() {
 				},
 			},
 			{
+				Use: "draft", Method: "sendMessageDraft", Kind: kindWrite,
+				Short: "Stream a partial message while it is still being written",
+				Long: `Show a user a live, partial message while the real one is still being generated
+(sendMessageDraft) — the "typing out an answer" effect, for a private chat.
+
+The draft is EPHEMERAL: it is a preview that disappears after about 30 seconds, so once the
+text is final you still have to send it with ` + "`message send`" + ` for it to exist in the
+chat. Reusing the same --draft-id animates the change; a new id replaces it outright. An empty
+--text shows a "Thinking…" placeholder.`,
+				Example: `  tgctl message draft --chat 12345 --draft-id 1 --text "Looking that up"
+  tgctl message draft --chat 12345 --draft-id 1 --text "" --can-stop`,
+				Flags: []flagSpec{
+					{Name: "chat", Param: "chat_id", Kind: flagInt, Required: true, Usage: "target private chat id (drafts are private-chat only)"},
+					{Name: "draft-id", Param: "draft_id", Kind: flagInt, Required: true, Usage: "id of this draft; reuse it to animate the change (non-zero)"},
+					{Name: "text", Usage: "partial text so far (empty shows a \"Thinking…\" placeholder)"},
+					{Name: "message-thread-id", Param: "message_thread_id", Kind: flagInt, Usage: "target message thread"},
+					{Name: "parse-mode", Param: "parse_mode", Usage: "MarkdownV2 | HTML | Markdown"},
+					{Name: "entities", Kind: flagJSON, Usage: "JSON array of MessageEntity objects (instead of --parse-mode)"},
+					{Name: "can-stop", Param: "can_stop", Kind: flagBool, Usage: "show the user a button to stop further drafts"},
+					{Name: "keep-on-stop", Param: "keep_on_stop", Kind: flagBool, Usage: "keep the draft visible when the user presses stop"},
+				},
+				PreCall: requireNonZeroDraftID,
+			},
+			{
 				Use: "unreact", Method: "deleteMessageReaction", Kind: kindDestructive,
 				Short: "Remove someone's reaction from a message",
 				Long: `Remove a reaction another member left on a message (deleteMessageReaction).
@@ -344,6 +368,16 @@ func chatFlag() flagSpec {
 // --chat/--message-id (a chat message) or --inline-message-id (an inline message).
 func optChatFlag() flagSpec {
 	return flagSpec{Name: "chat", Param: "chat_id", Usage: "target chat: numeric id or @username (with --message-id)"}
+}
+
+// requireNonZeroDraftID enforces the one constraint the API states outright about draft ids.
+// Zero is the value a caller lands on by forgetting the flag's meaning rather than by choosing
+// it, and the round trip would come back as a generic bad-request.
+func requireNonZeroDraftID(_ *cobra.Command, params map[string]any, _ map[string]string) error {
+	if id, ok := params["draft_id"].(int64); ok && id == 0 {
+		return fmt.Errorf("--draft-id must be non-zero")
+	}
+	return nil
 }
 
 // requireOneReactionActor rejects a reaction-removal call that names no actor or names two.

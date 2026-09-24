@@ -1,10 +1,10 @@
 ## tgctl inline
 
-Answer inline queries
+Answer inline and guest queries
 
 ### Synopsis
 
-Respond to an inline query (a user typing @yourbot ...) with a list of results (answerInlineQuery).
+Respond to an inline query (a user typing @yourbot ...) with a list of results, or to a guest message with a single result.
 
 ### Options
 
@@ -33,4 +33,5 @@ Respond to an inline query (a user typing @yourbot ...) with a list of results (
 
 * [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
 * [tgctl inline answer](tgctl_inline_answer.md)	 - Answer an inline query with results
+* [tgctl inline answer-guest](tgctl_inline_answer-guest.md)	 - Reply to a guest message with a single result
 

@@ -39,6 +39,7 @@ Send, edit, delete, forward, copy, and pin messages. --chat accepts a numeric id
 * [tgctl message delete](tgctl_message_delete.md)	 - Delete a message
 * [tgctl message delete-batch](tgctl_message_delete-batch.md)	 - Delete multiple messages at once
 * [tgctl message dice](tgctl_message_dice.md)	 - Send an animated emoji with a random value (dice, dart, etc.)
+* [tgctl message draft](tgctl_message_draft.md)	 - Stream a partial message while it is still being written
 * [tgctl message edit](tgctl_message_edit.md)	 - Edit a message's text
 * [tgctl message edit-caption](tgctl_message_edit-caption.md)	 - Edit the caption of a media message
 * [tgctl message edit-live-location](tgctl_message_edit-live-location.md)	 - Update a live location message
