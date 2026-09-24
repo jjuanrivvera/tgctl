@@ -188,7 +188,14 @@
         "refund",
         "edit-subscription",
         "set-emoji-status",
-        "send-paid-media"
+        "send-paid-media",
+        "balance",
+        "user-gifts",
+        "chat-gifts",
+        "convert-gift",
+        "upgrade-gift",
+        "transfer-gift",
+        "gift-premium"
       ],
       "key_fields": [
         "message_id"

@@ -35,6 +35,20 @@ All notable changes to this project are documented here. The format is based on
   `--text` shows the "Thinking…" placeholder. `tgctl inline answer-guest` (`answerGuestQuery`)
   replies to a guest message with a **single** result object, as opposed to the array
   `inline answer` takes.
+- **The gifts and Stars family (issue #29)**: `stars balance` (`getMyStarBalance`),
+  `stars user-gifts` / `stars chat-gifts` (`getUserGifts` / `getChatGifts`, sharing the
+  `--exclude-*` selectors), `stars convert-gift`, `stars upgrade-gift`, `stars transfer-gift`
+  and `stars gift-premium`.
+
+  The four that move something are classified **destructive**, not as ordinary writes: a
+  converted gift stops being a gift, an upgraded one cannot be un-upgraded, a transferred one
+  leaves the account, and a gifted subscription spends Stars that do not come back. The agent
+  guard and the MCP annotations gate them accordingly, and a test asserts the classification
+  rather than trusting the declaration.
+
+  `gift-premium` also checks the price list before the request leaves: the API sells 3 months
+  at 1000 Stars, 6 at 1500 and 12 at 2500, and a mistyped amount is better met before the
+  charge than after.
 
 ## [0.4.0] - 2026-09-23
 

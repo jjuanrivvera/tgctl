@@ -4,7 +4,7 @@ Telegram Stars: transactions, gifts, and paid media
 
 ### Synopsis
 
-Inspect the bot's Star balance transactions, send gifts, refund Star payments, manage Star subscriptions, and send paid media.
+Inspect the bot's Star balance and transactions, send and manage gifts, refund Star payments, manage Star subscriptions, gift Premium, and send paid media.
 
 ### Options
 
@@ -32,11 +32,18 @@ Inspect the bot's Star balance transactions, send gifts, refund Star payments, m
 ### SEE ALSO
 
 * [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
+* [tgctl stars balance](tgctl_stars_balance.md)	 - Show the bot's current Star balance
+* [tgctl stars chat-gifts](tgctl_stars_chat-gifts.md)	 - List the gifts a chat owns
+* [tgctl stars convert-gift](tgctl_stars_convert-gift.md)	 - Convert a regular gift into Telegram Stars
 * [tgctl stars edit-subscription](tgctl_stars_edit-subscription.md)	 - Cancel or re-enable a user's Star subscription
+* [tgctl stars gift-premium](tgctl_stars_gift-premium.md)	 - Gift a user a Telegram Premium subscription
 * [tgctl stars gifts](tgctl_stars_gifts.md)	 - List the gifts the bot can send
 * [tgctl stars refund](tgctl_stars_refund.md)	 - Refund a successful Star payment
 * [tgctl stars send-gift](tgctl_stars_send-gift.md)	 - Send a gift to a user or channel
 * [tgctl stars send-paid-media](tgctl_stars_send-paid-media.md)	 - Send paid media that recipients unlock with Stars
 * [tgctl stars set-emoji-status](tgctl_stars_set-emoji-status.md)	 - Set a user's emoji status (requires the user's prior consent)
 * [tgctl stars transactions](tgctl_stars_transactions.md)	 - List the bot's Star transactions
+* [tgctl stars transfer-gift](tgctl_stars_transfer-gift.md)	 - Transfer a unique gift to another owner
+* [tgctl stars upgrade-gift](tgctl_stars_upgrade-gift.md)	 - Upgrade a regular gift to a unique one
+* [tgctl stars user-gifts](tgctl_stars_user-gifts.md)	 - List the gifts a user owns
 
