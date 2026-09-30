@@ -1,52 +1,43 @@
 # tgctl demo — rendered with VHS (https://github.com/charmbracelet/vhs).
 #
-# NO ACCOUNT, NO NETWORK, NO SETUP. The token below is fake and never leaves the
-# recording: every command runs with --dry-run, which prints the exact request the
-# CLI would send and redacts the credential on its way out. That is real output —
-# the request is what you would actually get — without a bot, a signup or a keyring.
+# NO ACCOUNT, NO SIGNUP, NO NETWORK. The CLI talks to tools/demoserver, a local
+# stand-in that answers with invented data, so what you see is the real thing:
+# real tables, real JSON, real --jq, real exit paths. Only the answers are made up.
 #
 # Regenerate:
-#   make build && vhs .demo/demo.tape
+#   make build && go build -o bin/demoserver ./tools/demoserver && vhs .demo/demo.tape
 
 Output assets/demo.gif
 
 Set Shell bash
 Set FontSize 15
 Set Width 1200
-Set Height 720
+Set Height 760
 Set Padding 18
 Set Theme "Dracula"
 Set TypingSpeed 28ms
 
 Hide
-Type "export PATH=$PWD/bin:$PATH; export TGCTL_TOKEN=123456789:AAFakeTokenForTheDemoOnly; clear"
+Type "export PATH=$PWD/bin:$PATH TGCTL_TOKEN=123456789:AAFakeTokenForTheDemoOnly"
+Enter
+Type "demoserver :8642 >/dev/null 2>&1 & sleep 1"
+Enter
+Type "alias tgctl='tgctl --base-url http://localhost:8642'; clear"
 Enter
 Show
 
 Sleep 500ms
-Type "tgctl --help | head -18"
+Type "tgctl bot info"
 Sleep 250ms
 Enter
-Sleep 2600ms
+Sleep 2000ms
 
-Type "clear"
-Enter
-Sleep 300ms
-
-Type "# every command can show the request it would send"
-Sleep 200ms
-Enter
-Type "tgctl message send --chat @channel --text 'hello from tgctl' --dry-run"
+Type "tgctl message send --chat @demo_channel --text 'hello from tgctl'"
 Sleep 250ms
 Enter
 Sleep 2200ms
 
-Type "tgctl updates get --limit 5 -o json --dry-run"
-Sleep 250ms
-Enter
-Sleep 2200ms
-
-Type "tgctl message dice --chat @channel --emoji 🎲 --dry-run"
+Type "tgctl updates get --limit 2"
 Sleep 250ms
 Enter
 Sleep 2400ms
@@ -55,7 +46,15 @@ Type "clear"
 Enter
 Sleep 300ms
 
-Type "tgctl version"
+Type "tgctl updates get --limit 2 -o json --jq '.[].message.text'"
 Sleep 250ms
 Enter
-Sleep 1800ms
+Sleep 2400ms
+
+Type "# and the request behind any command, without sending it"
+Sleep 200ms
+Enter
+Type "tgctl message send --chat @demo_channel --text hi --dry-run"
+Sleep 250ms
+Enter
+Sleep 2400ms
