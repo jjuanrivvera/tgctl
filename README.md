@@ -15,6 +15,9 @@
 
 [Documentation](https://jjuanrivvera.github.io/tgctl/) · [Commands](https://jjuanrivvera.github.io/tgctl/commands/)
 
+
+![tgctl in action](assets/demo.gif)
+
 </div>
 
 ---
