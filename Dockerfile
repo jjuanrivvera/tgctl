@@ -2,7 +2,7 @@
 # Build:  docker build -t tgctl .
 # Run:    docker run --rm -e TGCTL_TOKEN=123:ABC tgctl bot info
 
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26.9-alpine AS builder
 RUN apk add --no-cache git
 WORKDIR /build
 
