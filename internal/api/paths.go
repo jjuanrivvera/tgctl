@@ -12,10 +12,8 @@ import (
 // confine it — we only confirm it exists and is a REGULAR file, to fail fast with a clear
 // message instead of streaming a directory or a missing file to the API.
 //
-// "Regular" is the load-bearing word: an upload is buffered before it is sent, so a character
-// device (`-F photo=@/dev/zero`) would grow that buffer until the process dies, and a FIFO
-// would block the command before it ever made a request. Neither is a file anyone means to
-// upload.
+// A character device (`-F photo=@/dev/zero`) would stream forever, and a FIFO would block
+// the command before it ever made a request. Neither is a file anyone means to upload.
 func ValidateUploadPath(p string) error {
 	if p == "" {
 		return fmt.Errorf("empty file path")

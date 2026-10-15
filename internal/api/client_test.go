@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -143,23 +142,27 @@ func TestClient_DryRun_ShowToken(t *testing.T) {
 func TestClient_Upload_Multipart(t *testing.T) {
 	dir := t.TempDir()
 	imgPath := filepath.Join(dir, "pic.jpg")
-	require.NoError(t, os.WriteFile(imgPath, []byte("JPEGDATA"), 0o600))
+	data := bytes.Repeat([]byte{'J', 'P', 'E', 'G', 0, 0xff, '\r', '\n'}, 20000)
+	require.NoError(t, os.WriteFile(imgPath, data, 0o600))
+	thumbPath := filepath.Join(dir, "thumb.jpg")
+	thumb := []byte("thumbnail")
+	require.NoError(t, os.WriteFile(thumbPath, thumb, 0o600))
 
 	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		require.NoError(t, r.ParseMultipartForm(1<<20))
 		assert.Equal(t, "1", r.FormValue("chat_id"))
-		f, hdr, err := r.FormFile("photo")
-		require.NoError(t, err)
-		defer func() { _ = f.Close() }()
-		assert.Equal(t, "pic.jpg", hdr.Filename)
-		data, _ := io.ReadAll(f)
-		assert.Equal(t, "JPEGDATA", string(data))
+		assert.Equal(t, "caption with \"quotes\"\nand a newline", r.FormValue("caption"))
+		assert.Equal(t, "true", r.FormValue("disable_notification"))
+		assert.Len(t, r.MultipartForm.Value, 3)
+		assert.Len(t, r.MultipartForm.File, 2)
+		assertUploadFile(t, r, "photo", "pic.jpg", data)
+		assertUploadFile(t, r, "thumbnail", "thumb.jpg", thumb)
 		okJSON(w, `{"message_id":5}`)
 	})
 
 	raw, err := c.Upload(t.Context(), "sendPhoto",
-		map[string]any{"chat_id": "1"},
-		map[string]string{"photo": imgPath}, false)
+		map[string]any{"chat_id": int64(1), "caption": "caption with \"quotes\"\nand a newline", "disable_notification": true},
+		map[string]string{"photo": imgPath, "thumbnail": thumbPath}, false)
 	require.NoError(t, err)
 	assert.Contains(t, string(raw), "message_id")
 }
