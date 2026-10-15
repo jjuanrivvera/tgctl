@@ -149,61 +149,102 @@ func (c *Client) CallInto(ctx context.Context, method string, params map[string]
 // to a LOCAL file path; params carries the remaining scalar fields. File paths are validated
 // (existence + regular file) by the caller's path-confinement helper before reaching here.
 func (c *Client) Upload(ctx context.Context, method string, params map[string]any, files map[string]string, idempotent bool) (json.RawMessage, error) {
-	var buf bytes.Buffer
-	mw := multipart.NewWriter(&buf)
-	for k, v := range params {
-		if err := mw.WriteField(k, scalarString(v)); err != nil {
-			return nil, err
-		}
-	}
 	var curlParts []string
 	for field, path := range files {
-		f, err := os.Open(path) //nolint:gosec // G304: path is confined by the caller (see confinePath)
+		// Fail before sending any request, even in a dry run, if a file is unreadable.
+		f, err := openUploadFile(field, path)
 		if err != nil {
-			return nil, fmt.Errorf("open %s: %w", field, err)
-		}
-		// Re-check the type on the OPEN descriptor, not on the path the caller validated:
-		// between those two moments the name could have been pointed at something else, and
-		// what gets copied is this descriptor.
-		info, err := f.Stat()
-		if err != nil {
-			_ = f.Close()
-			return nil, fmt.Errorf("stat %s: %w", field, err)
-		}
-		if err := checkRegular(path, info); err != nil {
-			_ = f.Close()
-			return nil, fmt.Errorf("%s: %w", field, err)
-		}
-		// A dry run still opens the file — "the request I would have sent" is only honest if
-		// the file is really readable — but it does not stream it: buffering a video in
-		// memory to print a curl line and send nothing would be pure waste.
-		if !c.DryRun {
-			fw, err := mw.CreateFormFile(field, filepath.Base(path))
-			if err != nil {
-				_ = f.Close()
-				return nil, err
-			}
-			if _, err := io.Copy(fw, f); err != nil {
-				_ = f.Close()
-				return nil, err
-			}
+			return nil, err
 		}
 		_ = f.Close()
 		curlParts = append(curlParts, fmt.Sprintf("-F %s=@%s", field, shellQuote(path)))
 	}
-	if err := mw.Close(); err != nil {
-		return nil, err
-	}
 	req := &preparedRequest{
-		method:      method,
-		contentType: mw.FormDataContentType(),
-		body:        buf.Bytes(),
-		idempotent:  idempotent,
-		curlData:    strings.Join(append(curlFields(params), curlParts...), " "),
+		method: method,
+		newBody: func() (io.ReadCloser, string) {
+			return newMultipartBody(params, files)
+		},
+		idempotent: idempotent,
+		curlData:   strings.Join(append(curlFields(params), curlParts...), " "),
 	}
 	result, err := c.do(ctx, req)
 	c.maybeRecord(ctx, method, params, result, err)
 	return result, err
+}
+
+type multipartBody struct {
+	*io.PipeReader
+	done chan struct{}
+}
+
+func (b *multipartBody) Close() error {
+	err := b.PipeReader.Close()
+	// A server or transport can stop reading before the writer finishes. Unblock it
+	// and wait for file handles to close before returning or starting another attempt.
+	<-b.done
+	return err
+}
+
+func newMultipartBody(params map[string]any, files map[string]string) (io.ReadCloser, string) {
+	pr, pw := io.Pipe()
+	mw := multipart.NewWriter(pw)
+	body := &multipartBody{PipeReader: pr, done: make(chan struct{})}
+	go func() {
+		defer close(body.done)
+		err := writeMultipart(mw, params, files)
+		if err == nil {
+			err = mw.Close()
+		}
+		_ = pw.CloseWithError(err)
+	}()
+	return body, mw.FormDataContentType()
+}
+
+func writeMultipart(mw *multipart.Writer, params map[string]any, files map[string]string) error {
+	for k, v := range params {
+		if err := mw.WriteField(k, scalarString(v)); err != nil {
+			return err
+		}
+	}
+	for field, path := range files {
+		if err := writeUploadFile(mw, field, path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeUploadFile(mw *multipart.Writer, field, path string) error {
+	f, err := openUploadFile(field, path)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+	fw, err := mw.CreateFormFile(field, filepath.Base(path))
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(fw, f)
+	return err
+}
+
+func openUploadFile(field, path string) (*os.File, error) {
+	f, err := os.Open(path) //nolint:gosec // G304: path is confined by the caller (see confinePath)
+	if err != nil {
+		return nil, fmt.Errorf("open %s: %w", field, err)
+	}
+	// Paths can change between validation and a retry; only the open descriptor
+	// tells us whether the bytes we are about to copy come from a regular file.
+	info, err := f.Stat()
+	if err != nil {
+		_ = f.Close()
+		return nil, fmt.Errorf("stat %s: %w", field, err)
+	}
+	if err := checkRegular(path, info); err != nil {
+		_ = f.Close()
+		return nil, fmt.Errorf("%s: %w", field, err)
+	}
+	return f, nil
 }
 
 // maybeRecord notifies the attached Recorder after a successful, non-dry-run call. It is a
@@ -255,6 +296,7 @@ type preparedRequest struct {
 	method      string
 	contentType string
 	body        []byte
+	newBody     func() (io.ReadCloser, string) // streams cannot be rewound for retries
 	idempotent  bool
 	curlData    string // the rendered curl data args, for --dry-run
 }
@@ -275,13 +317,24 @@ func (c *Client) do(ctx context.Context, req *preparedRequest) (json.RawMessage,
 			return nil, err
 		}
 
-		httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(req.body))
+		var body io.Reader = bytes.NewReader(req.body)
+		contentType := req.contentType
+		if req.newBody != nil {
+			body, contentType = req.newBody()
+		}
+		httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
 		if err != nil {
+			if closer, ok := body.(io.Closer); ok {
+				_ = closer.Close()
+			}
 			return nil, c.redactError(err)
 		}
-		httpReq.Header.Set("Content-Type", req.contentType)
+		httpReq.Header.Set("Content-Type", contentType)
 
 		resp, err := c.http.Do(httpReq) //nolint:bodyclose // body is read+closed in parse()
+		if httpReq.Body != nil {
+			_ = httpReq.Body.Close()
+		}
 		if err != nil {
 			lastErr = fmt.Errorf("%s: %w", req.method, c.redactError(err))
 			if retry, wait := c.retry.decide(attempt, 0, 0, true, req.idempotent); retry {
