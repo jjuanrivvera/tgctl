@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -174,15 +175,23 @@ func (c *Client) Upload(ctx context.Context, method string, params map[string]an
 
 type multipartBody struct {
 	*io.PipeReader
-	done chan struct{}
+	done     chan struct{}
+	writeErr error // set by the writer goroutine before done is closed
 }
 
 func (b *multipartBody) Close() error {
-	err := b.PipeReader.Close()
+	_ = b.PipeReader.Close()
 	// A server or transport can stop reading before the writer finishes. Unblock it
 	// and wait for file handles to close before returning or starting another attempt.
 	<-b.done
-	return err
+	// ErrClosedPipe only means the reader stopped early, which the response already
+	// reflects. Any other writer error (a file gone between attempts) means the body
+	// was incomplete, and a transport that answered without reading it must not turn
+	// that into a reported success.
+	if b.writeErr != nil && !errors.Is(b.writeErr, io.ErrClosedPipe) {
+		return b.writeErr
+	}
+	return nil
 }
 
 func newMultipartBody(params map[string]any, files map[string]string) (io.ReadCloser, string) {
@@ -195,6 +204,7 @@ func newMultipartBody(params map[string]any, files map[string]string) (io.ReadCl
 		if err == nil {
 			err = mw.Close()
 		}
+		body.writeErr = err
 		_ = pw.CloseWithError(err)
 	}()
 	return body, mw.FormDataContentType()
@@ -333,7 +343,10 @@ func (c *Client) do(ctx context.Context, req *preparedRequest) (json.RawMessage,
 
 		resp, err := c.http.Do(httpReq) //nolint:bodyclose // body is read+closed in parse()
 		if httpReq.Body != nil {
-			_ = httpReq.Body.Close()
+			if cerr := httpReq.Body.Close(); cerr != nil && err == nil {
+				_ = resp.Body.Close()
+				return nil, fmt.Errorf("%s: upload body: %w", req.method, cerr)
+			}
 		}
 		if err != nil {
 			lastErr = fmt.Errorf("%s: %w", req.method, c.redactError(err))

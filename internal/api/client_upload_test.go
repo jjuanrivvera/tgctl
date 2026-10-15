@@ -232,3 +232,38 @@ func TestClient_Upload_CancelDuringCopy(t *testing.T) {
 		t.Fatal("multipart writer still running after cancellation")
 	}
 }
+
+type failingCloseBody struct {
+	io.Reader
+	err error
+}
+
+func (b failingCloseBody) Close() error { return b.err }
+
+func TestMultipartBody_CloseReportsWriterError(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "gone.bin")
+	body, _ := newMultipartBody(nil, map[string]string{"document": path})
+	<-body.(*multipartBody).done // the open fails before anything is written
+	err := body.Close()
+	require.ErrorIs(t, err, os.ErrNotExist)
+}
+
+// A transport may answer without reading the body; an incomplete body must still fail.
+func TestClient_Do_IncompleteBodyIsNotSuccess(t *testing.T) {
+	auth, err := NewBotTokenAuth("123456:AAH-fake-test-credential-value")
+	require.NoError(t, err)
+	c := New(auth, WithRPS(0), WithHTTPClient(&http.Client{
+		Transport: uploadTransportFunc(func(_ *http.Request) (*http.Response, error) {
+			return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header),
+				Body: io.NopCloser(strings.NewReader(`{"ok":true,"result":true}`))}, nil
+		}),
+	}))
+	writerErr := errors.New("open document: file vanished")
+	_, err = c.do(t.Context(), &preparedRequest{
+		method: "sendDocument",
+		newBody: func() (io.ReadCloser, string) {
+			return failingCloseBody{Reader: strings.NewReader("partial"), err: writerErr}, "multipart/form-data"
+		},
+	})
+	require.ErrorIs(t, err, writerErr)
+}
