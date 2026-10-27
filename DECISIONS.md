@@ -121,13 +121,13 @@ MCP/agent-guard; destructive verbs (delete/leave/ban/unpin) annotated destructiv
 ## API completeness (cliwright GOAL.md §0/§11)
 The official [Bot API method index](https://core.telegram.org/bots/api) (10.3) contains 185
 methods, captured in `commands/testdata/bot_api_10_3_methods.json`. The manifest currently
-wraps **146/185 (78%)**; 39 remain. The offline inventory test compares the snapshot, manifest,
+wraps **147/185 (79%)**; 38 remain. The offline inventory test compares the snapshot, manifest,
 registry and canonical Cobra paths; `spec-completeness` counts manifest verbs, while
 `spec-check` checks their help is reachable. Neither gate alone proves a 1:1 mapping.
 
-**coverage-waiver: 78% (146/185); 39 methods remain**, tracked in issue #29. The 90%
+**coverage-waiver: 79% (147/185); 38 methods remain**, tracked in issue #29. The 90%
 threshold remains unchanged. Remaining families: sticker set management (15), payments (4),
-games (3), Passport (1), business profile photo (1), ephemeral messages (5),
+games (3), Passport (1), ephemeral messages (5),
 stories (4), managed bots (4), and rich messages (2). Games and Passport
 remain deferred until their decisions are revisited. The waiver is removed once coverage
 reaches the threshold.

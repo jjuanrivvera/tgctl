@@ -40,6 +40,7 @@ Inspect business connections, manage business account profiles, read/delete mess
 * [tgctl business set-bio](tgctl_business_set-bio.md)	 - Set bio of a connected business account
 * [tgctl business set-gift-settings](tgctl_business_set-gift-settings.md)	 - Set gift settings of a connected business account
 * [tgctl business set-name](tgctl_business_set-name.md)	 - Set name of a connected business account
+* [tgctl business set-photo](tgctl_business_set-photo.md)	 - Set profile photo of a connected business account
 * [tgctl business set-username](tgctl_business_set-username.md)	 - Set username of a connected business account
 * [tgctl business star-balance](tgctl_business_star-balance.md)	 - Get Star balance of a business account
 * [tgctl business transfer-stars](tgctl_business_transfer-stars.md)	 - Transfer Stars from a business account to the bot

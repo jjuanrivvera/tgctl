@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Business profile photo (issue #29, batch 6).** One Bot API method for business profile photos:
+  - `tgctl business set-photo --business-connection-id … (--photo … | --animated …)` (`setBusinessAccountProfilePhoto`) to set the static or animated profile photo of a connected business account (supports `--public` and `--main-frame-timestamp`).
 - **Live photos (issue #29, batch 5).** One Bot API method for media messages:
   - `tgctl media live-photo --chat … --photo … --live-photo …` (`sendLivePhoto`) to send a live photo with paired photo and video parts (supports local files and file IDs; HTTP URLs rejected).
 - **Interactive checklists (issue #29, batch 4).** Two Bot API methods for interactive checklists:

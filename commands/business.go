@@ -117,6 +117,25 @@ func init() {
 				PreCall: requireValidGiftSettings,
 			},
 			{
+				Use: "set-photo", Method: "setBusinessAccountProfilePhoto", Kind: kindWrite,
+				Short: "Set profile photo of a connected business account",
+				Long: `Set the profile photo of a connected business account (setBusinessAccountProfilePhoto).
+The photo must be a local file. Pass --photo for a static image, or --animated for an animation (with --main-frame-timestamp).`,
+				Example: "  tgctl business set-photo --business-connection-id bc123 --photo logo.jpg\n  tgctl business set-photo --business-connection-id bc123 --animated intro.mp4 --public",
+				Flags: []flagSpec{
+					businessConnectionFlag(),
+					{Name: "main-frame-timestamp", Param: "main_frame_timestamp", Kind: flagFloat,
+						Usage: "seconds into --animated for the still frame (default 0.0)"},
+					{Name: "public", Param: "is_public", Kind: flagBool,
+						Usage: "set the public photo visible even if main photo is hidden by privacy settings"},
+				},
+				Files: []fileSpec{
+					{Name: "photo", Usage: "local .JPG to use as the static profile photo"},
+					{Name: "animated", Usage: "local MPEG4 to use as an animated profile photo"},
+				},
+				PreCall: attachProfilePhoto,
+			},
+			{
 				Use: "remove-photo", Method: "removeBusinessAccountProfilePhoto", Kind: kindDestructive,
 				Short:   "Remove profile photo of a connected business account",
 				Long:    "Remove the profile photo of the connected business account.",
