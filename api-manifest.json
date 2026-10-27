@@ -281,6 +281,17 @@
         "command",
         "description"
       ]
+    },
+    {
+      "name": "suggested",
+      "verbs": [
+        "approve",
+        "decline"
+      ],
+      "key_fields": [
+        "chat_id",
+        "message_id"
+      ]
     }
   ]
 }

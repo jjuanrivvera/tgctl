@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Suggested posts (issue #29, batch 2).** Two Bot API methods for channel direct messages:
+  - `tgctl suggested approve --chat … --message-id … [--send-date …]` (`approveSuggestedPost`) to approve a suggested post for publication. Classified destructive as it authorizes publication (including paid posts).
+  - `tgctl suggested decline --chat … --message-id … [--comment …]` (`declineSuggestedPost`) to decline a suggested post with an optional feedback comment. Classified destructive as declining is irreversible.
 - **Web App and prepared messages (issue #29, batch 1).** Four Bot API methods:
   - `tgctl inline answer-web-app --query-id … --result …` (`answerWebAppQuery`) to answer a Web App query with a single InlineQueryResult.
   - `tgctl inline prepare-message --user … --result …` (`savePreparedInlineMessage`) to prepare an inline message for a Mini App user to send.
