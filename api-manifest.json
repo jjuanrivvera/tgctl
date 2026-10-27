@@ -77,7 +77,8 @@
         "animation",
         "video-note",
         "sticker",
-        "media-group"
+        "media-group",
+        "live-photo"
       ],
       "key_fields": [
         "message_id",

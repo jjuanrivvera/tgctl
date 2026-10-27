@@ -42,6 +42,7 @@ var messageBearingMethods = map[string]string{
 	"editMessageMedia":     "edit_media",
 	"sendChecklist":        "checklist",
 	"editMessageChecklist": "checklist",
+	"sendLivePhoto":        "live_photo",
 }
 
 // storeRecorder adapts *store.Store to api.Recorder structurally (internal/api never imports
@@ -143,6 +144,7 @@ type telegramMessage struct {
 	VideoNote      *fileIDField     `json:"video_note"`
 	Animation      *fileIDField     `json:"animation"`
 	Sticker        *fileIDField     `json:"sticker"`
+	LivePhoto      *fileIDField     `json:"live_photo"`
 	Checklist      *checklistField  `json:"checklist"`
 	ReplyToMessage *telegramMessage `json:"reply_to_message"`
 }
@@ -190,6 +192,8 @@ func (tm telegramMessage) fileID(kind string) string {
 		return holderFileID(tm.Animation)
 	case "sticker":
 		return holderFileID(tm.Sticker)
+	case "live_photo":
+		return holderFileID(tm.LivePhoto)
 	}
 	return ""
 }
@@ -216,6 +220,8 @@ func (tm telegramMessage) kindFromContent() string {
 		return "animation"
 	case tm.Sticker != nil:
 		return "sticker"
+	case tm.LivePhoto != nil:
+		return "live_photo"
 	case tm.Checklist != nil:
 		return "checklist"
 	default:

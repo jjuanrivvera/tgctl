@@ -1,5 +1,12 @@
 package commands
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
+)
+
 func init() {
 	registerGroup(group{
 		Use:   "media",
@@ -113,8 +120,53 @@ are not supported here — upload first with the single-item commands if you nee
 				},
 				Columns: []string{"message_id", "chat.id"},
 			},
+			{
+				Use: "live-photo", Method: "sendLivePhoto", Kind: kindWrite,
+				Short: "Send a live photo",
+				Long: `Send a live photo (a still photo accompanied by a short video).
+--photo and --live-photo both accept a local file path or an existing file_id.
+HTTP(S) URLs are not supported by the Bot API for this method.`,
+				Example: `  tgctl media live-photo --chat @me --photo ./still.jpg --live-photo ./motion.mp4 --caption "look at this"
+  tgctl media live-photo --chat @me --photo AgACAgI... --live-photo BAACAgI...`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "business-connection-id", Param: "business_connection_id", Usage: "unique identifier of the business connection"},
+					threadFlag(),
+					{Name: "caption", Usage: "live photo caption"},
+					parseModeFlag(),
+					{Name: "caption-entities", Param: "caption_entities", Kind: flagJSON, Usage: "JSON array of special entities that appear in the caption"},
+					{Name: "show-caption-above-media", Param: "show_caption_above_media", Kind: flagBool, Usage: "display caption above media"},
+					{Name: "has-spoiler", Param: "has_spoiler", Kind: flagBool, Usage: "cover the live photo with a spoiler animation"},
+					silentFlag(),
+					protectContentFlag(),
+					{Name: "allow-paid-broadcast", Param: "allow_paid_broadcast", Kind: flagBool, Usage: "allow up to 1000 messages per second by paying Telegram Stars"},
+					{Name: "message-effect-id", Param: "message_effect_id", Usage: "unique identifier of the message effect"},
+					{Name: "reply-parameters", Param: "reply_parameters", Kind: flagJSON, Usage: "JSON object describing message to reply to"},
+					replyMarkupFlag(),
+				},
+				Files: []fileSpec{
+					{Name: "live-photo", Param: "live_photo", Required: true, Usage: "live photo video part (local path or file_id; URLs not supported)"},
+					{Name: "photo", Param: "photo", Required: true, Usage: "still photo part (local path or file_id; URLs not supported)"},
+				},
+				PreCall: requireNoURLLivePhoto,
+				Columns: []string{"message_id", "chat.id"},
+			},
 		},
 	})
+}
+
+// requireNoURLLivePhoto rejects HTTP(S) URLs locally for sendLivePhoto because the Bot API
+// specification requires a local file upload or an existing Telegram file_id for both parts.
+func requireNoURLLivePhoto(_ *cobra.Command, params map[string]any, _ map[string]string) error {
+	for _, field := range []string{"live_photo", "photo"} {
+		if v, ok := params[field].(string); ok {
+			if strings.HasPrefix(v, "http://") || strings.HasPrefix(v, "https://") {
+				flagName := strings.ReplaceAll(field, "_", "-")
+				return fmt.Errorf("--%s does not support HTTP(S) URLs: pass a local file path or an existing Telegram file_id", flagName)
+			}
+		}
+	}
+	return nil
 }
 
 func silentFlag() flagSpec {
