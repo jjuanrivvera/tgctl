@@ -95,6 +95,15 @@ func TestBuildOutboundMessage(t *testing.T) {
 			wantText:   "live",
 			wantFileID: "LP1",
 		},
+		{
+			name:      "rich: text extracted from first block with text",
+			kind:      "rich",
+			params:    map[string]any{"chat_id": "7"},
+			result:    `{"message_id":5,"chat":{"id":7},"rich_message":{"blocks":[{"type":"paragraph","text":"rich content"}]}}`,
+			wantChat:  7,
+			wantMsgID: 5,
+			wantText:  "rich content",
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

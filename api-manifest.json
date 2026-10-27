@@ -58,7 +58,9 @@
         "stop-poll",
         "copy-batch",
         "forward-batch",
-        "delete-batch"
+        "delete-batch",
+        "send-rich",
+        "draft-rich"
       ],
       "key_fields": [
         "message_id",

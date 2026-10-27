@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Rich messages and streaming drafts (issue #29, batch 7).** Two Bot API methods for structured rich messages:
+  - `tgctl message send-rich --chat … --rich-message … [--file name=@path ...]` (`sendRichMessage`) to send block-level structured rich messages with layout blocks, tables, and optional multipart file attachments referencing `attach://name`.
+  - `tgctl message draft-rich --chat … --draft-id … --rich-message …` (`sendRichMessageDraft`) to stream partial rich message drafts (supports `--can-stop` and `--keep-on-stop`; direct file uploads prohibited).
 - **Business profile photo (issue #29, batch 6).** One Bot API method for business profile photos:
   - `tgctl business set-photo --business-connection-id … (--photo … | --animated …)` (`setBusinessAccountProfilePhoto`) to set the static or animated profile photo of a connected business account (supports `--public` and `--main-frame-timestamp`).
 - **Live photos (issue #29, batch 5).** One Bot API method for media messages:

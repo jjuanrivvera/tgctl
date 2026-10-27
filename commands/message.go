@@ -132,6 +132,52 @@ chat. Reusing the same --draft-id animates the change; a new id replaces it outr
 				PreCall: requireNonZeroDraftID,
 			},
 			{
+				Use: "send-rich", Method: "sendRichMessage", Kind: kindWrite,
+				Short: "Send a rich structured message",
+				Long: `Send a rich structured message with block-level layout, media, tables, and lists (sendRichMessage).
+--rich-message accepts a JSON object (InputRichMessage).
+Pass --file name=@path (repeatable) to upload multipart parts referenced by attach://name in blocks.`,
+				Example: `  tgctl message send-rich --chat @me --rich-message '{"blocks":[{"type":"section_heading","text":"Hello"},{"type":"paragraph","text":"World"}]}'
+  tgctl message send-rich --chat @me --rich-message '{"blocks":[{"type":"photo","photo":"attach://pic"}]}' --file pic=@./image.jpg`,
+				Flags: []flagSpec{
+					chatFlag(),
+					{Name: "rich-message", Param: "rich_message", Kind: flagJSON, Required: true, Usage: "JSON object describing the rich message (InputRichMessage)"},
+					businessFlag(),
+					threadFlag(),
+					{Name: "direct-messages-topic-id", Param: "direct_messages_topic_id", Kind: flagInt, Usage: "target direct messages topic id"},
+					silentFlag(),
+					protectContentFlag(),
+					{Name: "allow-paid-broadcast", Param: "allow_paid_broadcast", Kind: flagBool, Usage: "allow up to 1000 messages per second by paying Telegram Stars"},
+					{Name: "message-effect-id", Param: "message_effect_id", Usage: "unique identifier of the message effect"},
+					{Name: "suggested-post-parameters", Param: "suggested_post_parameters", Kind: flagJSON, Usage: "JSON object for suggested post parameters"},
+					{Name: "reply-parameters", Param: "reply_parameters", Kind: flagJSON, Usage: "JSON object describing message to reply to"},
+					replyMarkupFlag(),
+					{Name: "ephemeral-message-parameters", Param: "ephemeral_message_parameters", Kind: flagJSON, Usage: "JSON object for ephemeral message parameters"},
+				},
+				AllowFiles: true,
+				PreCall:    validateRichMessage,
+				Columns:    []string{"message_id", "chat.id", "date"},
+			},
+			{
+				Use: "draft-rich", Method: "sendRichMessageDraft", Kind: kindWrite,
+				Short: "Stream a partial rich message while it is being written",
+				Long: `Stream a partial rich message to a user while it is still being generated (sendRichMessageDraft).
+The draft is EPHEMERAL: it is a preview that disappears after about 30 seconds.
+Once generation is complete, send the finalized message with message send-rich to persist it in chat.
+Reusing the same --draft-id animates the change. Direct file uploads are not supported for drafts.`,
+				Example: `  tgctl message draft-rich --chat 12345 --draft-id 1 --rich-message '{"blocks":[{"type":"thinking","text":"Generating report..."}]}' --can-stop
+  tgctl message draft-rich --chat 12345 --draft-id 1 --rich-message '{"blocks":[{"type":"paragraph","text":"Partial answer"}]}'`,
+				Flags: []flagSpec{
+					{Name: "chat", Param: "chat_id", Kind: flagInt, Required: true, Usage: "target private chat id (drafts are private-chat only)"},
+					{Name: "draft-id", Param: "draft_id", Kind: flagInt, Required: true, Usage: "id of this draft; reuse it to animate the change (non-zero)"},
+					{Name: "rich-message", Param: "rich_message", Kind: flagJSON, Required: true, Usage: "JSON object describing the rich message draft (InputRichMessage)"},
+					{Name: "message-thread-id", Param: "message_thread_id", Kind: flagInt, Usage: "target message thread"},
+					{Name: "can-stop", Param: "can_stop", Kind: flagBool, Usage: "show the user a button to stop further drafts"},
+					{Name: "keep-on-stop", Param: "keep_on_stop", Kind: flagBool, Usage: "keep the draft visible when the user presses stop"},
+				},
+				PreCall: validateRichMessageDraft,
+			},
+			{
 				Use: "unreact", Method: "deleteMessageReaction", Kind: kindDestructive,
 				Short: "Remove someone's reaction from a message",
 				Long: `Remove a reaction another member left on a message (deleteMessageReaction).
@@ -434,4 +480,51 @@ func parseModeFlag() flagSpec {
 
 func replyMarkupFlag() flagSpec {
 	return flagSpec{Name: "reply-markup", Param: "reply_markup", Kind: flagJSON, Usage: "inline/reply keyboard as JSON"}
+}
+
+// validateRichMessage validates the InputRichMessage payload and ensures that all attach://
+// part references have corresponding uploaded files provided via --file.
+func validateRichMessage(_ *cobra.Command, params map[string]any, files map[string]string) error {
+	v, ok := params["rich_message"]
+	if !ok {
+		return nil
+	}
+	obj, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("--rich-message must be a JSON object")
+	}
+	if blocks, hasBlocks := obj["blocks"]; hasBlocks {
+		if _, ok := blocks.([]any); !ok {
+			return fmt.Errorf("--rich-message blocks must be a JSON array")
+		}
+	}
+	for _, ref := range findAttachReferences(obj) {
+		if _, hasFile := files[ref]; !hasFile {
+			return fmt.Errorf("missing upload for attach reference %q (pass --file %s=@<path>)", ref, ref)
+		}
+	}
+	return nil
+}
+
+// validateRichMessageDraft enforces non-zero draft ID and prohibits direct file uploads or
+// attach:// references in drafts.
+func validateRichMessageDraft(_ *cobra.Command, params map[string]any, files map[string]string) error {
+	if id, ok := params["draft_id"].(int64); ok && id == 0 {
+		return fmt.Errorf("--draft-id must be non-zero")
+	}
+	if len(files) > 0 {
+		return fmt.Errorf("direct file uploads are not supported for drafts")
+	}
+	v, ok := params["rich_message"]
+	if !ok {
+		return nil
+	}
+	obj, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("--rich-message must be a JSON object")
+	}
+	if refs := findAttachReferences(obj); len(refs) > 0 {
+		return fmt.Errorf("drafts cannot reference uploaded files with attach://")
+	}
+	return nil
 }

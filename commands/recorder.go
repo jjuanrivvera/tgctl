@@ -43,6 +43,7 @@ var messageBearingMethods = map[string]string{
 	"sendChecklist":        "checklist",
 	"editMessageChecklist": "checklist",
 	"sendLivePhoto":        "live_photo",
+	"sendRichMessage":      "rich",
 }
 
 // storeRecorder adapts *store.Store to api.Recorder structurally (internal/api never imports
@@ -90,7 +91,7 @@ func buildOutboundMessage(kind string, params map[string]any, result json.RawMes
 		Kind:      kind,
 		ChatID:    firstNonZero(tm.Chat.ID, toInt64(params["chat_id"])),
 		MessageID: tm.MessageID,
-		Text:      config.FirstNonEmpty(tm.textOrCaption(), paramString(params, "text"), paramString(params, "caption")),
+		Text:      config.FirstNonEmpty(tm.textOrCaption(), richMessageParamText(params["rich_message"]), paramString(params, "text"), paramString(params, "caption")),
 		FileID:    tm.fileID(kind),
 		Raw:       result,
 	}
@@ -134,19 +135,24 @@ type telegramMessage struct {
 	Chat      struct {
 		ID int64 `json:"id"`
 	} `json:"chat"`
-	Text           string           `json:"text"`
-	Caption        string           `json:"caption"`
-	Photo          []fileIDField    `json:"photo"` // largest size is last
-	Document       *fileIDField     `json:"document"`
-	Audio          *fileIDField     `json:"audio"`
-	Voice          *fileIDField     `json:"voice"`
-	Video          *fileIDField     `json:"video"`
-	VideoNote      *fileIDField     `json:"video_note"`
-	Animation      *fileIDField     `json:"animation"`
-	Sticker        *fileIDField     `json:"sticker"`
-	LivePhoto      *fileIDField     `json:"live_photo"`
-	Checklist      *checklistField  `json:"checklist"`
-	ReplyToMessage *telegramMessage `json:"reply_to_message"`
+	Text           string            `json:"text"`
+	Caption        string            `json:"caption"`
+	Photo          []fileIDField     `json:"photo"` // largest size is last
+	Document       *fileIDField      `json:"document"`
+	Audio          *fileIDField      `json:"audio"`
+	Voice          *fileIDField      `json:"voice"`
+	Video          *fileIDField      `json:"video"`
+	VideoNote      *fileIDField      `json:"video_note"`
+	Animation      *fileIDField      `json:"animation"`
+	Sticker        *fileIDField      `json:"sticker"`
+	LivePhoto      *fileIDField      `json:"live_photo"`
+	Checklist      *checklistField   `json:"checklist"`
+	RichMessage    *richMessageField `json:"rich_message"`
+	ReplyToMessage *telegramMessage  `json:"reply_to_message"`
+}
+
+type richMessageField struct {
+	Blocks []map[string]any `json:"blocks"`
 }
 
 type checklistField struct {
@@ -166,6 +172,17 @@ func (tm telegramMessage) textOrCaption() string {
 	}
 	if tm.Checklist != nil && tm.Checklist.Title != "" {
 		return tm.Checklist.Title
+	}
+	if tm.RichMessage != nil {
+		for _, b := range tm.RichMessage.Blocks {
+			if txt, ok := b["text"].(string); ok && txt != "" {
+				return txt
+			}
+			if title, ok := b["title"].(string); ok && title != "" {
+				return title
+			}
+		}
+		return "[Rich message]"
 	}
 	return ""
 }
@@ -224,9 +241,31 @@ func (tm telegramMessage) kindFromContent() string {
 		return "live_photo"
 	case tm.Checklist != nil:
 		return "checklist"
+	case tm.RichMessage != nil:
+		return "rich"
 	default:
 		return "other"
 	}
+}
+
+func richMessageParamText(v any) string {
+	obj, ok := v.(map[string]any)
+	if !ok {
+		return ""
+	}
+	if blocks, ok := obj["blocks"].([]any); ok {
+		for _, b := range blocks {
+			if bm, ok := b.(map[string]any); ok {
+				if txt, ok := bm["text"].(string); ok && txt != "" {
+					return txt
+				}
+				if title, ok := bm["title"].(string); ok && title != "" {
+					return title
+				}
+			}
+		}
+	}
+	return "[Rich message]"
 }
 
 func holderFileID(h *fileIDField) string {
