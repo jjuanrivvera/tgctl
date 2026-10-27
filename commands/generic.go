@@ -90,7 +90,10 @@ type methodCmd struct {
 	Kind    cmdKind
 	Flags   []flagSpec
 	Files   []fileSpec
-	Columns []string
+	// AllowFiles, if true, registers the repeatable --file/-F flag for
+	// attach:// multipart uploads and parses them in collectFiles.
+	AllowFiles bool
+	Columns    []string
 	// PostSuccess, if set, runs after a successful non-dry-run call and before render — a
 	// narrow escape hatch for the one verb (updates get) that needs to act on the raw result
 	// beyond rendering it (recording inbound messages to the local store, issue #5). Extend,
@@ -301,6 +304,9 @@ func bindFlags(cmd *cobra.Command, mc methodCmd) {
 			_ = cmd.MarkFlagRequired(fl.Name)
 		}
 	}
+	if mc.AllowFiles {
+		cmd.Flags().StringArrayP("file", "F", nil, "name=@path to upload as multipart (repeatable)")
+	}
 }
 
 // collectParams reads the set flags into the Bot API params map. Only flags the user actually
@@ -364,5 +370,42 @@ func collectFiles(cmd *cobra.Command, mc methodCmd, params map[string]any) (map[
 		}
 		files[fl.param()] = v
 	}
+	if mc.AllowFiles && f.Changed("file") {
+		specs, _ := f.GetStringArray("file")
+		parsed, err := parseUploads(specs)
+		if err != nil {
+			return nil, err
+		}
+		for name, path := range parsed {
+			if _, exists := files[name]; exists {
+				return nil, fmt.Errorf("duplicate upload part %q", name)
+			}
+			if _, exists := params[name]; exists {
+				return nil, fmt.Errorf("upload part %q collides with parameter", name)
+			}
+			files[name] = path
+		}
+	}
 	return files, nil
+}
+
+// findAttachReferences recursively walks any JSON structure (map, slice, string)
+// and returns all part names referenced as "attach://<name>".
+func findAttachReferences(v any) []string {
+	var refs []string
+	switch val := v.(type) {
+	case string:
+		if strings.HasPrefix(val, "attach://") {
+			refs = append(refs, strings.TrimPrefix(val, "attach://"))
+		}
+	case map[string]any:
+		for _, child := range val {
+			refs = append(refs, findAttachReferences(child)...)
+		}
+	case []any:
+		for _, item := range val {
+			refs = append(refs, findAttachReferences(item)...)
+		}
+	}
+	return refs
 }

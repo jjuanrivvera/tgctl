@@ -58,7 +58,9 @@
         "stop-poll",
         "copy-batch",
         "forward-batch",
-        "delete-batch"
+        "delete-batch",
+        "send-rich",
+        "draft-rich"
       ],
       "key_fields": [
         "message_id",
@@ -323,6 +325,34 @@
       "key_fields": [
         "message_id",
         "chat_id"
+      ]
+    },
+    {
+      "name": "ephemeral",
+      "verbs": [
+        "delete",
+        "edit-text",
+        "edit-caption",
+        "edit-media",
+        "edit-reply-markup"
+      ],
+      "key_fields": [
+        "chat_id",
+        "receiver_user_id",
+        "ephemeral_message_id"
+      ]
+    },
+    {
+      "name": "story",
+      "verbs": [
+        "post",
+        "edit",
+        "repost",
+        "delete"
+      ],
+      "key_fields": [
+        "business_connection_id",
+        "story_id"
       ]
     }
   ]

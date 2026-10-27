@@ -7,6 +7,20 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Stories on behalf of business accounts (issue #29, batch 9).** Four Bot API methods for managing business account stories:
+  - `tgctl story post --business-connection-id … (--photo … | --video … | --content …) --active-period …` (`postStory`) to publish a photo or video story (supports `--caption`, `--areas`, `--post-to-chat-page`; fresh upload required).
+  - `tgctl story edit --business-connection-id … --story-id … [--photo … | --video … | --content …] [--caption …]` (`editStory`) to edit story content, caption, and clickable areas.
+  - `tgctl story repost --business-connection-id … --from-business-connection-id … --story-id … --active-period …` (`repostStory`) to repost an existing story without uploading media.
+  - `tgctl story delete --business-connection-id … --story-id …` (`deleteStory`) to delete a story (destructive).
+- **Ephemeral messages (issue #29, batch 8).** Five Bot API methods for managing user-specific ephemeral messages:
+  - `tgctl ephemeral delete --chat … --receiver … --ephemeral-message-id …` (`deleteEphemeralMessage`) to delete an ephemeral message (destructive).
+  - `tgctl ephemeral edit-text --chat … --receiver … --ephemeral-message-id … (--text … | --rich-message …)` (`editEphemeralMessageText`) to edit text or structured rich message.
+  - `tgctl ephemeral edit-caption --chat … --receiver … --ephemeral-message-id … [--caption …]` (`editEphemeralMessageCaption`) to edit media captions (supports `--show-caption-above-media`).
+  - `tgctl ephemeral edit-media --chat … --receiver … --ephemeral-message-id … --media …` (`editEphemeralMessageMedia`) to edit media content with InputMedia JSON and optional file uploads.
+  - `tgctl ephemeral edit-reply-markup --chat … --receiver … --ephemeral-message-id … [--reply-markup …]` (`editEphemeralMessageReplyMarkup`) to edit inline keyboard markup.
+- **Rich messages and streaming drafts (issue #29, batch 7).** Two Bot API methods for structured rich messages:
+  - `tgctl message send-rich --chat … --rich-message … [--file name=@path ...]` (`sendRichMessage`) to send block-level structured rich messages with layout blocks, tables, and optional multipart file attachments referencing `attach://name`.
+  - `tgctl message draft-rich --chat … --draft-id … --rich-message …` (`sendRichMessageDraft`) to stream partial rich message drafts (supports `--can-stop` and `--keep-on-stop`; direct file uploads prohibited).
 - **Business profile photo (issue #29, batch 6).** One Bot API method for business profile photos:
   - `tgctl business set-photo --business-connection-id … (--photo … | --animated …)` (`setBusinessAccountProfilePhoto`) to set the static or animated profile photo of a connected business account (supports `--public` and `--main-frame-timestamp`).
 - **Live photos (issue #29, batch 5).** One Bot API method for media messages:

@@ -52,6 +52,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl completion](tgctl_completion.md)	 - Generate a shell completion script
 * [tgctl config](tgctl_config.md)	 - Inspect and edit tgctl configuration
 * [tgctl doctor](tgctl_doctor.md)	 - Diagnose configuration, credentials, and connectivity
+* [tgctl ephemeral](tgctl_ephemeral.md)	 - Manage and edit ephemeral messages
 * [tgctl file](tgctl_file.md)	 - Inspect and download files
 * [tgctl forum](tgctl_forum.md)	 - Manage forum topics in supergroups
 * [tgctl init](tgctl_init.md)	 - First-run wizard: pick a base URL, capture a token, and smoke-test
@@ -63,6 +64,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl member](tgctl_member.md)	 - Moderate chat members (ban, restrict, promote)
 * [tgctl message](tgctl_message.md)	 - Send and manage messages
 * [tgctl stars](tgctl_stars.md)	 - Telegram Stars: transactions, gifts, and paid media
+* [tgctl story](tgctl_story.md)	 - Manage and publish stories on behalf of business accounts
 * [tgctl suggested](tgctl_suggested.md)	 - Manage suggested posts in channel direct messages
 * [tgctl update](tgctl_update.md)	 - Update tgctl to the latest GitHub release
 * [tgctl updates](tgctl_updates.md)	 - Fetch incoming updates (long polling)
