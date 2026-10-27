@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Stories on behalf of business accounts (issue #29, batch 9).** Four Bot API methods for managing business account stories:
+  - `tgctl story post --business-connection-id … (--photo … | --video … | --content …) --active-period …` (`postStory`) to publish a photo or video story (supports `--caption`, `--areas`, `--post-to-chat-page`; fresh upload required).
+  - `tgctl story edit --business-connection-id … --story-id … [--photo … | --video … | --content …] [--caption …]` (`editStory`) to edit story content, caption, and clickable areas.
+  - `tgctl story repost --business-connection-id … --from-business-connection-id … --story-id … --active-period …` (`repostStory`) to repost an existing story without uploading media.
+  - `tgctl story delete --business-connection-id … --story-id …` (`deleteStory`) to delete a story (destructive).
 - **Ephemeral messages (issue #29, batch 8).** Five Bot API methods for managing user-specific ephemeral messages:
   - `tgctl ephemeral delete --chat … --receiver … --ephemeral-message-id …` (`deleteEphemeralMessage`) to delete an ephemeral message (destructive).
   - `tgctl ephemeral edit-text --chat … --receiver … --ephemeral-message-id … (--text … | --rich-message …)` (`editEphemeralMessageText`) to edit text or structured rich message.

@@ -64,6 +64,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl member](tgctl_member.md)	 - Moderate chat members (ban, restrict, promote)
 * [tgctl message](tgctl_message.md)	 - Send and manage messages
 * [tgctl stars](tgctl_stars.md)	 - Telegram Stars: transactions, gifts, and paid media
+* [tgctl story](tgctl_story.md)	 - Manage and publish stories on behalf of business accounts
 * [tgctl suggested](tgctl_suggested.md)	 - Manage suggested posts in channel direct messages
 * [tgctl update](tgctl_update.md)	 - Update tgctl to the latest GitHub release
 * [tgctl updates](tgctl_updates.md)	 - Fetch incoming updates (long polling)

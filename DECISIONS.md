@@ -35,6 +35,7 @@ never silently re-decide.
 | Live photo file policy (issue #29) | `sendLivePhoto` accepts only local files or `file_id`, **rejecting HTTP(S) URLs** | The Bot API specification requires uploading the parts or reusing Telegram file IDs; URLs are not supported by the upstream endpoint for live photos. |
 | Rich messages file and draft policy (issue #29) | `sendRichMessage` supports multipart file attachments via repeatable `--file name=@path` referencing `attach://<name>`; `sendRichMessageDraft` **prohibits direct file uploads and attach references** | Rich messages contain block-level document structures; drafts are ephemeral streaming previews that do not persist messages and must not take file uploads. |
 | Ephemeral messages classification and targeting (issue #29) | `deleteEphemeralMessage` is **destructive**; edit methods are **write**; all 5 require the triple (`--chat`, `--receiver`, `--ephemeral-message-id`); no rows created in SQLite message store | Deleting is irreversible; targeting requires the chat, recipient user id, and ephemeral message id; ephemeral messages return boolean results and are not persistent chat history. |
+| Story publishing file policy and classification (issue #29) | `deleteStory` is **destructive**; `postStory`, `editStory`, `repostStory` are **write**; new content requires local file upload via `attach://` (rejecting URLs and `file_id`); active periods must be 21600, 43200, 86400, or 172800; results are `Story` objects, not chat `Message`s | Telegram does not accept URLs or file_ids for stories; deletions cannot be undone; stories move to archive after 6h/12h/24h/48h; stories do not generate chat message history rows. |
 
 ## Beyond-the-API value-adds (GOAL.md §3c)
 - **`webhook listen`** — a local HTTP receiver that renders incoming webhook updates. It is
@@ -123,13 +124,13 @@ MCP/agent-guard; destructive verbs (delete/leave/ban/unpin) annotated destructiv
 ## API completeness (cliwright GOAL.md §0/§11)
 The official [Bot API method index](https://core.telegram.org/bots/api) (10.3) contains 185
 methods, captured in `commands/testdata/bot_api_10_3_methods.json`. The manifest currently
-wraps **154/185 (83%)**; 31 remain. The offline inventory test compares the snapshot, manifest,
+wraps **158/185 (85%)**; 27 remain. The offline inventory test compares the snapshot, manifest,
 registry and canonical Cobra paths; `spec-completeness` counts manifest verbs, while
 `spec-check` checks their help is reachable. Neither gate alone proves a 1:1 mapping.
 
-**coverage-waiver: 83% (154/185); 31 methods remain**, tracked in issue #29. The 90%
+**coverage-waiver: 85% (158/185); 27 methods remain**, tracked in issue #29. The 90%
 threshold remains unchanged. Remaining families: sticker set management (15), payments (4),
-games (3), Passport (1), stories (4), and managed bots (4). Games and Passport
+games (3), Passport (1), and managed bots (4). Games and Passport
 remain deferred until their decisions are revisited. The waiver is removed once coverage
 reaches the threshold.
 
