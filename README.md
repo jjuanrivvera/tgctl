@@ -182,8 +182,8 @@ See [AGENTS.md](AGENTS.md) for the architecture and house rules, and
 
 ## Roadmap / Pending
 
-`tgctl` wraps **149 of 185** methods in the [Telegram Bot API 10.3](https://core.telegram.org/bots/api)
-(**80%**). The remaining 36 methods and the completeness waiver are tracked in
+`tgctl` wraps **154 of 185** methods in the [Telegram Bot API 10.3](https://core.telegram.org/bots/api)
+(**83%**). The remaining 31 methods and the completeness waiver are tracked in
 [DECISIONS.md](DECISIONS.md) and issue #29. The gate retains its 90% threshold; the waiver
 is removed when coverage reaches it.
 

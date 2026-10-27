@@ -326,6 +326,21 @@
         "message_id",
         "chat_id"
       ]
+    },
+    {
+      "name": "ephemeral",
+      "verbs": [
+        "delete",
+        "edit-text",
+        "edit-caption",
+        "edit-media",
+        "edit-reply-markup"
+      ],
+      "key_fields": [
+        "chat_id",
+        "receiver_user_id",
+        "ephemeral_message_id"
+      ]
     }
   ]
 }

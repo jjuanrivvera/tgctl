@@ -7,6 +7,12 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Ephemeral messages (issue #29, batch 8).** Five Bot API methods for managing user-specific ephemeral messages:
+  - `tgctl ephemeral delete --chat … --receiver … --ephemeral-message-id …` (`deleteEphemeralMessage`) to delete an ephemeral message (destructive).
+  - `tgctl ephemeral edit-text --chat … --receiver … --ephemeral-message-id … (--text … | --rich-message …)` (`editEphemeralMessageText`) to edit text or structured rich message.
+  - `tgctl ephemeral edit-caption --chat … --receiver … --ephemeral-message-id … [--caption …]` (`editEphemeralMessageCaption`) to edit media captions (supports `--show-caption-above-media`).
+  - `tgctl ephemeral edit-media --chat … --receiver … --ephemeral-message-id … --media …` (`editEphemeralMessageMedia`) to edit media content with InputMedia JSON and optional file uploads.
+  - `tgctl ephemeral edit-reply-markup --chat … --receiver … --ephemeral-message-id … [--reply-markup …]` (`editEphemeralMessageReplyMarkup`) to edit inline keyboard markup.
 - **Rich messages and streaming drafts (issue #29, batch 7).** Two Bot API methods for structured rich messages:
   - `tgctl message send-rich --chat … --rich-message … [--file name=@path ...]` (`sendRichMessage`) to send block-level structured rich messages with layout blocks, tables, and optional multipart file attachments referencing `attach://name`.
   - `tgctl message draft-rich --chat … --draft-id … --rich-message …` (`sendRichMessageDraft`) to stream partial rich message drafts (supports `--can-stop` and `--keep-on-stop`; direct file uploads prohibited).
