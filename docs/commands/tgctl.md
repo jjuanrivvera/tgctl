@@ -44,6 +44,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl api](tgctl_api.md)	 - Call any Bot API method directly (raw escape hatch)
 * [tgctl auth](tgctl_auth.md)	 - Manage bot tokens and verify authentication
 * [tgctl bot](tgctl_bot.md)	 - Inspect and configure the bot itself
+* [tgctl business](tgctl_business.md)	 - Manage Telegram Business connections and accounts
 * [tgctl callback](tgctl_callback.md)	 - Answer callback queries from inline keyboards
 * [tgctl chat](tgctl_chat.md)	 - Inspect chats and their members
 * [tgctl commands](tgctl_commands.md)	 - Manage the bot's command menu

@@ -7,6 +7,18 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Business accounts and connections (issue #29, batch 3).** Eleven Bot API methods:
+  - `tgctl business connection --business-connection-id …` (`getBusinessConnection`) to fetch business connection info (read-only).
+  - `tgctl business gifts --business-connection-id …` (`getBusinessAccountGifts`) to list gifts received by the business account (read-only).
+  - `tgctl business star-balance --business-connection-id …` (`getBusinessAccountStarBalance`) to inspect Star balance (read-only).
+  - `tgctl business read-message --business-connection-id … --chat … --message-id …` (`readBusinessMessage`) to mark a business message as read.
+  - `tgctl business delete-messages --business-connection-id … --message-ids …` (`deleteBusinessMessages`) to delete messages (destructive).
+  - `tgctl business set-bio --business-connection-id … [--bio …]` (`setBusinessAccountBio`) to set or clear business bio.
+  - `tgctl business set-name --business-connection-id … --first-name … [--last-name …]` (`setBusinessAccountName`) to set business first and last name.
+  - `tgctl business set-username --business-connection-id … [--username …]` (`setBusinessAccountUsername`) to set or clear business username.
+  - `tgctl business set-gift-settings --business-connection-id … --show-gift-button --accepted-gift-types …` (`setBusinessAccountGiftSettings`) to configure gift reception settings.
+  - `tgctl business remove-photo --business-connection-id …` (`removeBusinessAccountProfilePhoto`) to remove business profile photo (destructive).
+  - `tgctl business transfer-stars --business-connection-id … --star-count …` (`transferBusinessAccountStars`) to transfer Stars from business account to bot (destructive, no 5xx retry).
 - **Suggested posts (issue #29, batch 2).** Two Bot API methods for channel direct messages:
   - `tgctl suggested approve --chat … --message-id … [--send-date …]` (`approveSuggestedPost`) to approve a suggested post for publication. Classified destructive as it authorizes publication (including paid posts).
   - `tgctl suggested decline --chat … --message-id … [--comment …]` (`declineSuggestedPost`) to decline a suggested post with an optional feedback comment. Classified destructive as declining is irreversible.
