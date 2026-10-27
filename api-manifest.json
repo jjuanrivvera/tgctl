@@ -77,7 +77,8 @@
         "animation",
         "video-note",
         "sticker",
-        "media-group"
+        "media-group",
+        "live-photo"
       ],
       "key_fields": [
         "message_id",
@@ -291,6 +292,37 @@
       "key_fields": [
         "chat_id",
         "message_id"
+      ]
+    },
+    {
+      "name": "business",
+      "verbs": [
+        "connection",
+        "gifts",
+        "star-balance",
+        "read-message",
+        "delete-messages",
+        "set-bio",
+        "set-name",
+        "set-username",
+        "set-gift-settings",
+        "set-photo",
+        "remove-photo",
+        "transfer-stars"
+      ],
+      "key_fields": [
+        "business_connection_id"
+      ]
+    },
+    {
+      "name": "checklist",
+      "verbs": [
+        "send",
+        "edit"
+      ],
+      "key_fields": [
+        "message_id",
+        "chat_id"
       ]
     }
   ]

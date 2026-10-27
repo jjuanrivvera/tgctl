@@ -20,26 +20,29 @@ import (
 // direction='in' by commands/updates.go and commands/webhook_listen.go. Adding a new send
 // command never needs a new recording edit: extend this map instead (DECISIONS.md).
 var messageBearingMethods = map[string]string{
-	"sendMessage":        "text",
-	"sendPhoto":          "photo",
-	"sendDocument":       "document",
-	"sendAudio":          "audio",
-	"sendVoice":          "voice",
-	"sendVideo":          "video",
-	"sendVideoNote":      "video_note",
-	"sendAnimation":      "animation",
-	"sendSticker":        "sticker",
-	"sendMediaGroup":     "media_group",
-	"sendLocation":       "location",
-	"sendVenue":          "venue",
-	"sendContact":        "contact",
-	"sendPoll":           "poll",
-	"sendDice":           "dice",
-	"copyMessage":        "copy",
-	"forwardMessage":     "forward",
-	"editMessageText":    "edit",
-	"editMessageCaption": "edit_caption",
-	"editMessageMedia":   "edit_media",
+	"sendMessage":          "text",
+	"sendPhoto":            "photo",
+	"sendDocument":         "document",
+	"sendAudio":            "audio",
+	"sendVoice":            "voice",
+	"sendVideo":            "video",
+	"sendVideoNote":        "video_note",
+	"sendAnimation":        "animation",
+	"sendSticker":          "sticker",
+	"sendMediaGroup":       "media_group",
+	"sendLocation":         "location",
+	"sendVenue":            "venue",
+	"sendContact":          "contact",
+	"sendPoll":             "poll",
+	"sendDice":             "dice",
+	"copyMessage":          "copy",
+	"forwardMessage":       "forward",
+	"editMessageText":      "edit",
+	"editMessageCaption":   "edit_caption",
+	"editMessageMedia":     "edit_media",
+	"sendChecklist":        "checklist",
+	"editMessageChecklist": "checklist",
+	"sendLivePhoto":        "live_photo",
 }
 
 // storeRecorder adapts *store.Store to api.Recorder structurally (internal/api never imports
@@ -141,7 +144,13 @@ type telegramMessage struct {
 	VideoNote      *fileIDField     `json:"video_note"`
 	Animation      *fileIDField     `json:"animation"`
 	Sticker        *fileIDField     `json:"sticker"`
+	LivePhoto      *fileIDField     `json:"live_photo"`
+	Checklist      *checklistField  `json:"checklist"`
 	ReplyToMessage *telegramMessage `json:"reply_to_message"`
+}
+
+type checklistField struct {
+	Title string `json:"title"`
 }
 
 type fileIDField struct {
@@ -152,7 +161,13 @@ func (tm telegramMessage) textOrCaption() string {
 	if tm.Text != "" {
 		return tm.Text
 	}
-	return tm.Caption
+	if tm.Caption != "" {
+		return tm.Caption
+	}
+	if tm.Checklist != nil && tm.Checklist.Title != "" {
+		return tm.Checklist.Title
+	}
+	return ""
 }
 
 // fileID returns the file_id for the media field matching kind, or "" when kind isn't a media
@@ -177,6 +192,8 @@ func (tm telegramMessage) fileID(kind string) string {
 		return holderFileID(tm.Animation)
 	case "sticker":
 		return holderFileID(tm.Sticker)
+	case "live_photo":
+		return holderFileID(tm.LivePhoto)
 	}
 	return ""
 }
@@ -203,6 +220,10 @@ func (tm telegramMessage) kindFromContent() string {
 		return "animation"
 	case tm.Sticker != nil:
 		return "sticker"
+	case tm.LivePhoto != nil:
+		return "live_photo"
+	case tm.Checklist != nil:
+		return "checklist"
 	default:
 		return "other"
 	}

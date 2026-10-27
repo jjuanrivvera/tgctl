@@ -7,6 +7,25 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Business profile photo (issue #29, batch 6).** One Bot API method for business profile photos:
+  - `tgctl business set-photo --business-connection-id … (--photo … | --animated …)` (`setBusinessAccountProfilePhoto`) to set the static or animated profile photo of a connected business account (supports `--public` and `--main-frame-timestamp`).
+- **Live photos (issue #29, batch 5).** One Bot API method for media messages:
+  - `tgctl media live-photo --chat … --photo … --live-photo …` (`sendLivePhoto`) to send a live photo with paired photo and video parts (supports local files and file IDs; HTTP URLs rejected).
+- **Interactive checklists (issue #29, batch 4).** Two Bot API methods for interactive checklists:
+  - `tgctl checklist send --business-connection-id … --chat … --checklist …` (`sendChecklist`) to send an interactive checklist on behalf of a connected business account.
+  - `tgctl checklist edit --business-connection-id … --chat … --message-id … --checklist …` (`editMessageChecklist`) to edit an existing checklist.
+- **Business accounts and connections (issue #29, batch 3).** Eleven Bot API methods:
+  - `tgctl business connection --business-connection-id …` (`getBusinessConnection`) to fetch business connection info (read-only).
+  - `tgctl business gifts --business-connection-id …` (`getBusinessAccountGifts`) to list gifts received by the business account (read-only).
+  - `tgctl business star-balance --business-connection-id …` (`getBusinessAccountStarBalance`) to inspect Star balance (read-only).
+  - `tgctl business read-message --business-connection-id … --chat … --message-id …` (`readBusinessMessage`) to mark a business message as read.
+  - `tgctl business delete-messages --business-connection-id … --message-ids …` (`deleteBusinessMessages`) to delete messages (destructive).
+  - `tgctl business set-bio --business-connection-id … [--bio …]` (`setBusinessAccountBio`) to set or clear business bio.
+  - `tgctl business set-name --business-connection-id … --first-name … [--last-name …]` (`setBusinessAccountName`) to set business first and last name.
+  - `tgctl business set-username --business-connection-id … [--username …]` (`setBusinessAccountUsername`) to set or clear business username.
+  - `tgctl business set-gift-settings --business-connection-id … --show-gift-button --accepted-gift-types …` (`setBusinessAccountGiftSettings`) to configure gift reception settings.
+  - `tgctl business remove-photo --business-connection-id …` (`removeBusinessAccountProfilePhoto`) to remove business profile photo (destructive).
+  - `tgctl business transfer-stars --business-connection-id … --star-count …` (`transferBusinessAccountStars`) to transfer Stars from business account to bot (destructive, no 5xx retry).
 - **Suggested posts (issue #29, batch 2).** Two Bot API methods for channel direct messages:
   - `tgctl suggested approve --chat … --message-id … [--send-date …]` (`approveSuggestedPost`) to approve a suggested post for publication. Classified destructive as it authorizes publication (including paid posts).
   - `tgctl suggested decline --chat … --message-id … [--comment …]` (`declineSuggestedPost`) to decline a suggested post with an optional feedback comment. Classified destructive as declining is irreversible.

@@ -31,6 +31,8 @@ never silently re-decide.
 | CSV output | Kept | Most list results (updates, administrators, commands) are tabular. |
 | "id" rendering | `ID` flexible type (string-or-number) | chat_id / user_id are large int64; render as string to avoid >2^53 precision loss. |
 | Suggested posts classification (issue #29) | Both `approve` and `decline` classified as **destructive** | Approving can authorize a paid channel publication and declining is irreversible; neither should be executed autonomously by an agent without confirmation. |
+| Business methods classification (issue #29) | `readBusinessMessage` is **write**; `deleteBusinessMessages`, `removeBusinessAccountProfilePhoto`, `transferBusinessAccountStars` are **destructive** | Marking a message read changes remote state; deletions and transfers are irreversible; transferring Stars from a business account must never auto-retry on 5xx to prevent double-spending. |
+| Live photo file policy (issue #29) | `sendLivePhoto` accepts only local files or `file_id`, **rejecting HTTP(S) URLs** | The Bot API specification requires uploading the parts or reusing Telegram file IDs; URLs are not supported by the upstream endpoint for live photos. |
 
 ## Beyond-the-API value-adds (GOAL.md §3c)
 - **`webhook listen`** — a local HTTP receiver that renders incoming webhook updates. It is
@@ -119,14 +121,14 @@ MCP/agent-guard; destructive verbs (delete/leave/ban/unpin) annotated destructiv
 ## API completeness (cliwright GOAL.md §0/§11)
 The official [Bot API method index](https://core.telegram.org/bots/api) (10.3) contains 185
 methods, captured in `commands/testdata/bot_api_10_3_methods.json`. The manifest currently
-wraps **132/185 (71%)**; 53 remain. The offline inventory test compares the snapshot, manifest,
+wraps **147/185 (79%)**; 38 remain. The offline inventory test compares the snapshot, manifest,
 registry and canonical Cobra paths; `spec-completeness` counts manifest verbs, while
 `spec-check` checks their help is reachable. Neither gate alone proves a 1:1 mapping.
 
-**coverage-waiver: 71% (132/185); 53 methods remain**, tracked in issue #29. The 90%
+**coverage-waiver: 79% (147/185); 38 methods remain**, tracked in issue #29. The 90%
 threshold remains unchanged. Remaining families: sticker set management (15), payments (4),
-games (3), Passport (1), business (12), checklists (2), ephemeral messages (5),
-stories (4), managed bots (4), and live photo and rich messages (3). Games and Passport
+games (3), Passport (1), ephemeral messages (5),
+stories (4), managed bots (4), and rich messages (2). Games and Passport
 remain deferred until their decisions are revisited. The waiver is removed once coverage
 reaches the threshold.
 
