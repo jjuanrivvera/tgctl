@@ -4,11 +4,11 @@
 standard (Go + Cobra + GoReleaser). This file orients an AI agent (or human) contributing.
 
 ## The one rule that matters
-**`make verify` is the gate.** A change is done only when `make verify` exits `0`. It runs
-`make check` (fmt, vet, golangci-lint, gosec, govulncheck, tests) + `spec-check` (the built
-surface matches `api-manifest.json`) + `cover-check` (≥80% coverage) + `dod-check.sh` +
-`judge.sh`. Run the full `make verify` for any change that touches the command surface or a
-documented behavior — not just `make check`.
+**`make verify` is the gate. It runs `make check` (fmt, vet, golangci-lint including gosec,
+and tests), `spec-check`, `spec-completeness`, `cover-check` (≥80% total), and `dod-check.sh`.
+Run `make build` first so `spec-check` inspects the current binary. Run `govulncheck ./...`
+separately; `make judge` is a separate subjective acceptance step, not part of `verify`.
+Run the full gate for changes to the command surface or documented behavior.
 
 ## Architecture (where things live)
 - `internal/api/` — the generic client core (auth, retry, rate limit, dry-run curl, flexible

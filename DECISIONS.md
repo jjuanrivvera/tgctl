@@ -30,6 +30,7 @@ never silently re-decide.
 | `base_url` override | `--base-url` / config (default `https://api.telegram.org`) | Supports self-hosted [Local Bot API Server](https://github.com/tdlib/telegram-bot-api). |
 | CSV output | Kept | Most list results (updates, administrators, commands) are tabular. |
 | "id" rendering | `ID` flexible type (string-or-number) | chat_id / user_id are large int64; render as string to avoid >2^53 precision loss. |
+| Suggested posts classification (issue #29) | Both `approve` and `decline` classified as **destructive** | Approving can authorize a paid channel publication and declining is irreversible; neither should be executed autonomously by an agent without confirmation. |
 
 ## Beyond-the-API value-adds (GOAL.md §3c)
 - **`webhook listen`** — a local HTTP receiver that renders incoming webhook updates. It is
@@ -116,57 +117,18 @@ Grouped by noun; verbs map 1:1 to Bot API methods. Read-only verbs annotated rea
 MCP/agent-guard; destructive verbs (delete/leave/ban/unpin) annotated destructive.
 
 ## API completeness (cliwright GOAL.md §0/§11)
-The full Bot API method set is **enumerated from a source, not recalled**: the ark0f/tg-bot-api
-community machine spec (`api_method_source` in api-manifest.json) yields **135 methods** (Bot API
-8.3). `scripts/spec-completeness.sh` reads `api_method_total` and fails if the manifest covers
-below its threshold without a recorded waiver.
+The official [Bot API method index](https://core.telegram.org/bots/api) (10.3) contains 185
+methods, captured in `commands/testdata/bot_api_10_3_methods.json`. The manifest currently
+wraps **132/185 (71%)**; 53 remain. The offline inventory test compares the snapshot, manifest,
+registry and canonical Cobra paths; `spec-completeness` counts manifest verbs, while
+`spec-check` checks their help is reachable. Neither gate alone proves a 1:1 mapping.
 
-`tgctl` wraps **109 / 135 methods (80%)**: all messaging, media, chat administration, member
-moderation, forum-topic management, invite links (incl. subscription links), bot configuration,
-Telegram Stars, chat/user verification, webhooks, updates, files, callbacks, and inline queries.
-
-**coverage-waiver: 60% (111/185). The 74 uncovered methods are the niche families below,
-deferred deliberately, not overlooked.** The baseline was re-derived on 2026-09-23 against the
-published method index (Bot API 10.3). It previously enumerated **8.3** via a community machine
-spec that had gone 50 methods stale, so the recorded 82% was measuring against a two-versions-old
-API: the real figure was 60% the whole time. The percentage dropped without a single command being
-removed — that is the gate finally telling the truth.
-
-Deferred since the first pass (23) — self-contained sub-APIs most bots never touch:
-- **stickers-set-management (15)** — createNewStickerSet, addStickerToSet, replaceStickerInSet,
-  deleteStickerFromSet, deleteStickerSet, setSticker*, getStickerSet, getCustomEmojiStickers,
-  uploadStickerFile, setCustomEmojiStickerSetThumbnail. A full sticker-authoring workflow.
-- **payments/invoices (4)** — sendInvoice, createInvoiceLink, answerShippingQuery,
-  answerPreCheckoutQuery. Requires a payment-provider token and a checkout callback loop.
-- **games (3)** — sendGame, setGameScore, getGameHighScores. The HTML5 Games platform.
-- **telegram-passport (1)** — setPassportDataErrors. Encrypted identity documents.
-
-The remaining 51, grouped as they would be shipped. All but three arrived with 8.3 → 10.3;
-`getBusinessConnection`, `answerWebAppQuery` and `savePreparedInlineMessage` predate it and were
-previously filed under a "business-connection" family that no longer describes them:
-- **business accounts (12)** — getBusinessConnection, deleteBusinessMessages, readBusinessMessage,
-  setBusinessAccount{Bio,Name,Username,ProfilePhoto,GiftSettings},
-  removeBusinessAccountProfilePhoto, getBusinessAccount{Gifts,StarBalance},
-  transferBusinessAccountStars. Acting on behalf of a connected business account.
-- **gifts & stars (7)** — getUserGifts, getChatGifts, transferGift, upgradeGift,
-  convertGiftToStars, giftPremiumSubscription, getMyStarBalance. Extends the existing `stars`
-  group; the closest family to being worth wrapping next.
-- **ephemeral messages (5)** — deleteEphemeralMessage, editEphemeralMessage{Text,Caption,Media,
-  ReplyMarkup}.
-- **stories (4)** — postStory, editStory, repostStory, deleteStory.
-- **managed bots (4)** — get/setManagedBotAccessSettings, get/replaceManagedBotToken.
-- **web-app & prepared messages (4)** — answerWebAppQuery, savePreparedInlineMessage,
-  savePreparedKeyboardButton, sendChatJoinRequestWebApp.
-- **checklists (2)** — sendChecklist, editMessageChecklist.
-- **suggested posts (2)** — approveSuggestedPost, declineSuggestedPost.
-- **loose ends (11)** — deleteMessageReaction, deleteAllMessageReactions, setChatMemberTag,
-  sendLivePhoto, sendRichMessage, sendMessageDraft, sendRichMessageDraft, answerGuestQuery,
-  answerChatJoinRequestQuery, getUserProfileAudios, getUserPersonalChatMessages. Small additions
-  to groups that already exist (`message`, `member`, `user`), so the cheapest to close.
-
-They stay recorded here (not silently dropped) so the completeness gate sees the decision on
-every pass. Adding any family later is the same declarative pattern (manifest verb → group
-methodCmd → mocked test); the waiver line is removed when coverage clears the threshold.
+**coverage-waiver: 71% (132/185); 53 methods remain**, tracked in issue #29. The 90%
+threshold remains unchanged. Remaining families: sticker set management (15), payments (4),
+games (3), Passport (1), business (12), checklists (2), ephemeral messages (5),
+stories (4), managed bots (4), and live photo and rich messages (3). Games and Passport
+remain deferred until their decisions are revisited. The waiver is removed once coverage
+reaches the threshold.
 
 ## v0.2 surface expansion (52 → 109 verbs)
 Added following the generic method-command builder (extend, don't fork):

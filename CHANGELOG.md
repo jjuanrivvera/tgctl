@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Suggested posts (issue #29, batch 2).** Two Bot API methods for channel direct messages:
+  - `tgctl suggested approve --chat … --message-id … [--send-date …]` (`approveSuggestedPost`) to approve a suggested post for publication. Classified destructive as it authorizes publication (including paid posts).
+  - `tgctl suggested decline --chat … --message-id … [--comment …]` (`declineSuggestedPost`) to decline a suggested post with an optional feedback comment. Classified destructive as declining is irreversible.
+- **Web App and prepared messages (issue #29, batch 1).** Four Bot API methods:
+  - `tgctl inline answer-web-app --query-id … --result …` (`answerWebAppQuery`) to answer a Web App query with a single InlineQueryResult.
+  - `tgctl inline prepare-message --user … --result …` (`savePreparedInlineMessage`) to prepare an inline message for a Mini App user to send.
+  - `tgctl inline prepare-button --user … --button …` (`savePreparedKeyboardButton`) to store a prepared keyboard button (request_users, request_chat, or request_managed_bot) for a Mini App user.
+  - `tgctl member join-web-app --query-id … --web-app-url …` (`sendChatJoinRequestWebApp`) to open an HTTPS Mini App for a chat join request query.
+
 ## [0.5.0] - 2026-09-24
 
 ### Added

@@ -1,11 +1,11 @@
 {
-  "_comment": "Spec-derived manifest (cliwright GOAL.md §0/§11). The FULL Bot API method set is enumerated from the published method index (see api_method_source), not model recall. The enumeration was re-derived on 2026-09-23: the previous baseline was the ark0f community machine spec, pinned at Bot API 8.3, which had gone 50 methods stale and made the recorded coverage overstate reality. Verbs map 1:1 to Bot API methods. scripts/spec-check.sh enforces surface⊆manifest (consistency); scripts/spec-completeness.sh enforces manifest≈full-API (completeness, threshold recorded there). The Bot API is RPC-method-oriented, not CRUD — verbs are the API's own actions (see DECISIONS.md). Deliberately-skipped niche families (stickers-set-management, payments/invoices, games, telegram-passport, business-connection) are recorded as a coverage-waiver in DECISIONS.md.",
+  "_comment": "Spec-derived manifest; canonical verbs map 1:1 to Bot API methods. spec-check checks manifest paths are reachable; spec-completeness counts verbs against the official method index. The offline inventory test checks correspondence with the registry and snapshot. Remaining families and the coverage waiver are recorded in DECISIONS.md.",
   "binary": "tgctl",
   "base_url": "https://api.telegram.org",
   "auth": "bot-token",
   "pagination": "offset (getUpdates offset/limit)",
   "api_method_total": 185,
-  "api_method_source": "https://core.telegram.org/bots/api (the official method index, Bot API 10.3) — enumerated 2026-09-23 from the page's method headings: every <h4> whose title is camelCase (methods) as opposed to PascalCase (types), cross-checked against the previous ark0f/tg-bot-api 8.3 machine spec, all 135 of whose methods are present in the 185.",
+  "api_method_source": "https://core.telegram.org/bots/api (the official method index, Bot API 10.3) \u2014 enumerated 2026-09-23 from the page's method headings: every <h4> whose title is camelCase (methods) as opposed to PascalCase (types), cross-checked against the previous ark0f/tg-bot-api 8.3 machine spec, all 135 of whose methods are present in the 185.",
   "resources": [
     {
       "name": "bot",
@@ -123,7 +123,8 @@
         "decline-join",
         "answer-join-query",
         "ban-sender",
-        "unban-sender"
+        "unban-sender",
+        "join-web-app"
       ],
       "key_fields": [
         "status",
@@ -237,7 +238,10 @@
       "name": "inline",
       "verbs": [
         "answer",
-        "answer-guest"
+        "answer-guest",
+        "answer-web-app",
+        "prepare-message",
+        "prepare-button"
       ],
       "key_fields": [
         "inline_query_id"
@@ -276,6 +280,17 @@
       "key_fields": [
         "command",
         "description"
+      ]
+    },
+    {
+      "name": "suggested",
+      "verbs": [
+        "approve",
+        "decline"
+      ],
+      "key_fields": [
+        "chat_id",
+        "message_id"
       ]
     }
   ]

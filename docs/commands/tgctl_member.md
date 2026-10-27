@@ -37,6 +37,7 @@ Administrative actions on members. The bot must be an admin with the relevant ri
 * [tgctl member ban](tgctl_member_ban.md)	 - Ban a user from a chat
 * [tgctl member ban-sender](tgctl_member_ban-sender.md)	 - Ban a channel from posting as itself in a chat
 * [tgctl member decline-join](tgctl_member_decline-join.md)	 - Decline a chat join request
+* [tgctl member join-web-app](tgctl_member_join-web-app.md)	 - Show a Mini App for a join request query
 * [tgctl member promote](tgctl_member_promote.md)	 - Promote or demote an administrator
 * [tgctl member restrict](tgctl_member_restrict.md)	 - Restrict what a member can do
 * [tgctl member set-tag](tgctl_member_set-tag.md)	 - Set (or clear) a regular member's tag

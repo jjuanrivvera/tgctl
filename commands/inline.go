@@ -41,6 +41,37 @@ result as the reply: --result is a single InlineQueryResult object, not an array
 				},
 				PreCall: requireResultObject,
 			},
+			{
+				Use: "answer-web-app", Method: "answerWebAppQuery", Kind: kindWrite,
+				Short: "Answer a Web App query with a message",
+				Long:  "Send one InlineQueryResult on behalf of the user to the originating chat. Returns a SentWebAppMessage.",
+				Flags: []flagSpec{
+					{Name: "query-id", Param: "web_app_query_id", Required: true, Usage: "Web App query identifier"},
+					{Name: "result", Kind: flagJSON, Required: true, Usage: "single InlineQueryResult object as JSON"},
+				}, PreCall: requireResultObject,
+			},
+			{
+				Use: "prepare-message", Method: "savePreparedInlineMessage", Kind: kindWrite,
+				Short: "Prepare a message for a Mini App user to send",
+				Long:  "Store one InlineQueryResult for the user. Returns an identifier and expiration date.",
+				Flags: []flagSpec{
+					userFlag(),
+					{Name: "result", Kind: flagJSON, Required: true, Usage: "single InlineQueryResult object as JSON"},
+					{Name: "allow-user-chats", Kind: flagBool, Usage: "allow private chats with users"},
+					{Name: "allow-bot-chats", Kind: flagBool, Usage: "allow private chats with bots"},
+					{Name: "allow-group-chats", Kind: flagBool, Usage: "allow group and supergroup chats"},
+					{Name: "allow-channel-chats", Kind: flagBool, Usage: "allow channel chats"},
+				}, PreCall: requireResultObject,
+			},
+			{
+				Use: "prepare-button", Method: "savePreparedKeyboardButton", Kind: kindWrite,
+				Short: "Prepare a keyboard button for a Mini App user",
+				Long:  "Store a KeyboardButton with exactly one of request_users, request_chat or request_managed_bot. Returns its identifier.",
+				Flags: []flagSpec{
+					userFlag(),
+					{Name: "button", Kind: flagJSON, Required: true, Usage: "KeyboardButton object as JSON"},
+				}, PreCall: requirePreparedButton,
+			},
 		},
 	})
 }
@@ -59,4 +90,29 @@ func requireResultObject(_ *cobra.Command, params map[string]any, _ map[string]s
 	default:
 		return fmt.Errorf("--result must be an InlineQueryResult object, got %T", v)
 	}
+}
+
+func requirePreparedButton(_ *cobra.Command, params map[string]any, _ map[string]string) error {
+	button, ok := params["button"].(map[string]any)
+	if !ok {
+		return fmt.Errorf("--button must be a KeyboardButton object")
+	}
+	count := 0
+	for _, field := range []string{"request_users", "request_chat", "request_managed_bot"} {
+		if value, exists := button[field]; exists {
+			if _, ok := value.(map[string]any); !ok {
+				return fmt.Errorf("--button %s must be an object", field)
+			}
+			count++
+		}
+	}
+	if count != 1 {
+		return fmt.Errorf("--button must have exactly one of request_users, request_chat, or request_managed_bot")
+	}
+	for _, field := range []string{"request_contact", "request_location", "request_poll", "web_app"} {
+		if _, exists := button[field]; exists {
+			return fmt.Errorf("--button cannot combine %s with a request button", field)
+		}
+	}
+	return nil
 }

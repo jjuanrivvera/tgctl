@@ -182,23 +182,10 @@ See [AGENTS.md](AGENTS.md) for the architecture and house rules, and
 
 ## Roadmap / Pending
 
-`tgctl` wraps **109 of the 135** methods in the Telegram Bot API (v8.3, enumerated from the
-[ark0f/tg-bot-api](https://ark0f.github.io/tg-bot-api/) machine spec) — **80%** coverage,
-enforced by the `spec-completeness` gate. Done since the first cut:
-
-- **Bot API coverage 52 → 109 verbs** — full member/admin management, forum topics (incl. the
-  General topic), chat-admin setters (photo, permissions, sticker set, menu button, unpin-all),
-  the `edit*` message family + bulk copy/forward/delete, chat/user verification, Telegram Stars
-  (transactions, gifts, refunds, subscriptions, paid media), invite export + subscription links,
-  and bot short-description / default-admin-rights / close / logout.
-- **Packaging** — multi-stage `Dockerfile` + a distroless GHCR image, and a checksum-verifying
-  `install.sh` (`curl | sh`) one-liner.
-
-Deliberately deferred (recorded as a `coverage-waiver` in [DECISIONS.md](DECISIONS.md) so the
-completeness gate accounts for them, not a silent gap): five self-contained niche families —
-**sticker-set authoring, payments/invoices, games, Telegram Passport, and business-connection**.
-Each is the same declarative pattern to add (manifest verb → group `methodCmd` → mocked test)
-when a real need shows up; the waiver line is removed once coverage clears the threshold.
+`tgctl` wraps **132 of 185** methods in the [Telegram Bot API 10.3](https://core.telegram.org/bots/api)
+(**71%**). The remaining 53 methods and the completeness waiver are tracked in
+[DECISIONS.md](DECISIONS.md) and issue #29. The gate retains its 90% threshold; the waiver
+is removed when coverage reaches it.
 
 ## License
 
