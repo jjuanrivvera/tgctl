@@ -123,7 +123,8 @@
         "decline-join",
         "answer-join-query",
         "ban-sender",
-        "unban-sender"
+        "unban-sender",
+        "join-web-app"
       ],
       "key_fields": [
         "status",
@@ -237,7 +238,10 @@
       "name": "inline",
       "verbs": [
         "answer",
-        "answer-guest"
+        "answer-guest",
+        "answer-web-app",
+        "prepare-message",
+        "prepare-button"
       ],
       "key_fields": [
         "inline_query_id"

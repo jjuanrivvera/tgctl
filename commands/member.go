@@ -125,6 +125,15 @@ directly. --result takes approve, decline, or queue to leave the decision to ano
 					{Name: "sender-chat", Param: "sender_chat_id", Kind: flagInt, Required: true, Usage: "id of the channel/chat to unban"},
 				},
 			},
+			{
+				Use: "join-web-app", Method: "sendChatJoinRequestWebApp", Kind: kindWrite,
+				Short: "Show a Mini App for a join request query",
+				Long:  "Open an HTTPS Mini App for a received join request query; use member answer-join-query to resolve it afterwards.",
+				Flags: []flagSpec{
+					{Name: "query-id", Param: "chat_join_request_query_id", Required: true, Usage: "join request query identifier"},
+					{Name: "web-app-url", Required: true, Usage: "HTTPS URL of the Mini App"},
+				},
+			},
 		},
 	})
 }

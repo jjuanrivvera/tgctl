@@ -34,4 +34,7 @@ Respond to an inline query (a user typing @yourbot ...) with a list of results, 
 * [tgctl](tgctl.md)	 - Command-line tool for the Telegram Bot API
 * [tgctl inline answer](tgctl_inline_answer.md)	 - Answer an inline query with results
 * [tgctl inline answer-guest](tgctl_inline_answer-guest.md)	 - Reply to a guest message with a single result
+* [tgctl inline answer-web-app](tgctl_inline_answer-web-app.md)	 - Answer a Web App query with a message
+* [tgctl inline prepare-button](tgctl_inline_prepare-button.md)	 - Prepare a keyboard button for a Mini App user
+* [tgctl inline prepare-message](tgctl_inline_prepare-message.md)	 - Prepare a message for a Mini App user to send
 
