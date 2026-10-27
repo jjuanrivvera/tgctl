@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Interactive checklists (issue #29, batch 4).** Two Bot API methods for interactive checklists:
+  - `tgctl checklist send --business-connection-id … --chat … --checklist …` (`sendChecklist`) to send an interactive checklist on behalf of a connected business account.
+  - `tgctl checklist edit --business-connection-id … --chat … --message-id … --checklist …` (`editMessageChecklist`) to edit an existing checklist.
 - **Business accounts and connections (issue #29, batch 3).** Eleven Bot API methods:
   - `tgctl business connection --business-connection-id …` (`getBusinessConnection`) to fetch business connection info (read-only).
   - `tgctl business gifts --business-connection-id …` (`getBusinessAccountGifts`) to list gifts received by the business account (read-only).

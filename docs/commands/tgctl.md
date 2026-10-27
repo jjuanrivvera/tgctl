@@ -47,6 +47,7 @@ Every command honors --dry-run (prints the equivalent curl), -o/--output, and --
 * [tgctl business](tgctl_business.md)	 - Manage Telegram Business connections and accounts
 * [tgctl callback](tgctl_callback.md)	 - Answer callback queries from inline keyboards
 * [tgctl chat](tgctl_chat.md)	 - Inspect chats and their members
+* [tgctl checklist](tgctl_checklist.md)	 - Send and edit interactive checklists
 * [tgctl commands](tgctl_commands.md)	 - Manage the bot's command menu
 * [tgctl completion](tgctl_completion.md)	 - Generate a shell completion script
 * [tgctl config](tgctl_config.md)	 - Inspect and edit tgctl configuration

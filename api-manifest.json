@@ -311,6 +311,17 @@
       "key_fields": [
         "business_connection_id"
       ]
+    },
+    {
+      "name": "checklist",
+      "verbs": [
+        "send",
+        "edit"
+      ],
+      "key_fields": [
+        "message_id",
+        "chat_id"
+      ]
     }
   ]
 }

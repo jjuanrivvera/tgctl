@@ -76,6 +76,15 @@ func TestBuildOutboundMessage(t *testing.T) {
 			wantMsgID: 0,
 			wantText:  "x",
 		},
+		{
+			name:      "checklist: title is extracted as text from the checklist object",
+			kind:      "checklist",
+			params:    map[string]any{"chat_id": "7"},
+			result:    `{"message_id":3,"chat":{"id":7},"checklist":{"title":"Shopping List"}}`,
+			wantChat:  7,
+			wantMsgID: 3,
+			wantText:  "Shopping List",
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -144,6 +153,7 @@ func TestTelegramMessage_KindFromContent(t *testing.T) {
 		{"video_note", `{"video_note":{"file_id":"a"}}`, "video_note"},
 		{"animation", `{"animation":{"file_id":"a"}}`, "animation"},
 		{"sticker", `{"sticker":{"file_id":"a"}}`, "sticker"},
+		{"checklist", `{"checklist":{"title":"Tasks"}}`, "checklist"},
 		{"other", `{"contact":{"phone_number":"1"}}`, "other"},
 	}
 	for _, tc := range tests {
